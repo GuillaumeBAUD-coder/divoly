@@ -8,6 +8,14 @@ export const metadata: Metadata = {
   title: "Divoly | Search AI Answers, Not AI",
   description: "Divoly is a crowdsourced library of real AI responses. Search once, find answers instantly, no inference, no energy waste. Contributed by the community.",
   metadataBase: new URL("https://divoly.com"),
+  icons: {
+    icon: [
+      { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
   openGraph: {
     title: "Divoly | Search AI Answers, Not AI",
     description: "Crowdsourced AI answers you can search instantly. No inference. No energy waste. Just knowledge shared by the community.",
