@@ -160,7 +160,7 @@ export default function HomePage() {
 
         <p className="relative text-lg text-white/50 max-w-2xl mx-auto mb-4 leading-relaxed fade-up" style={{ animationDelay: "0.2s" }}>
           Divoly is a living library of real AI responses, contributed by millions of users.
-          Search once — find answers that already exist. Every cached response
+          Search once, find answers that already exist. Every cached response
           <span className="text-emerald-400 font-medium"> saves energy, water, and compute</span>.
         </p>
 
@@ -231,7 +231,7 @@ export default function HomePage() {
           <div className="text-left max-w-3xl mx-auto mt-8 mb-6 fade-up">
             <p className="text-sm text-white/40 mb-4">
               {results.length === 0
-                ? "No results yet — be the first to contribute this answer!"
+                ? "No results yet. Be the first to contribute this answer!"
                 : `${results.length} answer${results.length > 1 ? "s" : ""} found`}
             </p>
             {results.length === 0 ? (
@@ -278,7 +278,7 @@ export default function HomePage() {
             {
               step: "01", icon: "💬", color: "#6366f1",
               title: "You ask an AI",
-              desc: "Ask your question to ChatGPT, Claude, Gemini — any AI tool you already use.",
+              desc: "Ask your question to ChatGPT, Claude, Gemini, or any AI tool you already use.",
             },
             {
               step: "02", icon: "📋", color: "#8b5cf6",
@@ -288,7 +288,7 @@ export default function HomePage() {
             {
               step: "03", icon: "🔍", color: "#38bdf8",
               title: "Everyone finds it instantly",
-              desc: "Next time someone asks the same question, they get the answer — no AI query needed.",
+              desc: "Next time someone asks the same question, they get the answer. No AI query needed.",
             },
           ].map((s) => (
             <div key={s.step} className="glass-card rounded-2xl p-6">
@@ -380,7 +380,7 @@ export default function HomePage() {
         </div>
         {recent.length === 0 ? (
           <div className="glass rounded-2xl p-8 text-center text-white/30 text-sm">
-            No answers yet —{" "}
+            No answers yet,{" "}
             <Link href="/contribute" className="text-indigo-400">be the first to contribute</Link>!
           </div>
         ) : (

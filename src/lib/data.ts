@@ -29,7 +29,7 @@ export const MOCK_ANSWERS = [
     id: "2",
     prompt: "What is the difference between TCP and UDP?",
     answer:
-      "**TCP (Transmission Control Protocol)** is connection-oriented — it establishes a connection before sending data, guarantees delivery, order, and error-checking. Great for: web browsing, email, file transfers.\n\n**UDP (User Datagram Protocol)** is connectionless — it fires packets without confirming receipt. Faster but unreliable. Great for: video streaming, online gaming, DNS lookups.\n\nSimple analogy: TCP is a certified letter (you know it arrived). UDP is a flyer thrown into a crowd (some might catch it, some won't).",
+      "**TCP (Transmission Control Protocol)** is connection-oriented , it establishes a connection before sending data, guarantees delivery, order, and error-checking. Great for: web browsing, email, file transfers.\n\n**UDP (User Datagram Protocol)** is connectionless , it fires packets without confirming receipt. Faster but unreliable. Great for: video streaming, online gaming, DNS lookups.\n\nSimple analogy: TCP is a certified letter (you know it arrived). UDP is a flyer thrown into a crowd (some might catch it, some won't).",
     model: "Claude 3.5",
     modelColor: "#818cf8",
     category: "Coding",
@@ -43,7 +43,7 @@ export const MOCK_ANSWERS = [
     id: "3",
     prompt: "Write a cover letter opening paragraph for a software engineer role at a startup",
     answer:
-      "I'm a software engineer with 4 years of experience building scalable web applications, and I'm genuinely excited about [Company]'s mission to [X]. What draws me to early-stage companies is the opportunity to wear multiple hats — I thrive when I can move fast, make architectural decisions, and see my code directly impact users. At my last role, I shipped [specific achievement], and I'd love to bring that same drive to your team.",
+      "I'm a software engineer with 4 years of experience building scalable web applications, and I'm genuinely excited about [Company]'s mission to [X]. What draws me to early-stage companies is the opportunity to wear multiple hats , I thrive when I can move fast, make architectural decisions, and see my code directly impact users. At my last role, I shipped [specific achievement], and I'd love to bring that same drive to your team.",
     model: "Claude 3.7",
     modelColor: "#818cf8",
     category: "Writing",
@@ -71,7 +71,7 @@ export const MOCK_ANSWERS = [
     id: "5",
     prompt: "What is compound interest and how is it calculated?",
     answer:
-      "Compound interest is interest calculated on both the **initial principal** and the **accumulated interest** from previous periods.\n\nFormula: **A = P(1 + r/n)^(nt)**\n\nWhere:\n- A = final amount\n- P = principal (initial investment)\n- r = annual interest rate (decimal)\n- n = times interest compounds per year\n- t = time in years\n\nExample: $1,000 at 5% compounded annually for 10 years:\nA = 1000(1 + 0.05/1)^(1×10) = **$1,628.89**\n\nVs simple interest: 1000 × (1 + 0.05 × 10) = $1,500. Compound gives you $128.89 more — and the gap grows exponentially over time.",
+      "Compound interest is interest calculated on both the **initial principal** and the **accumulated interest** from previous periods.\n\nFormula: **A = P(1 + r/n)^(nt)**\n\nWhere:\n- A = final amount\n- P = principal (initial investment)\n- r = annual interest rate (decimal)\n- n = times interest compounds per year\n- t = time in years\n\nExample: $1,000 at 5% compounded annually for 10 years:\nA = 1000(1 + 0.05/1)^(1×10) = **$1,628.89**\n\nVs simple interest: 1000 × (1 + 0.05 × 10) = $1,500. Compound gives you $128.89 more , and the gap grows exponentially over time.",
     model: "GPT-4o",
     modelColor: "#10b981",
     category: "Finance",
@@ -85,7 +85,7 @@ export const MOCK_ANSWERS = [
     id: "6",
     prompt: "How does the immune system recognize pathogens?",
     answer:
-      "The immune system uses a two-layer recognition system:\n\n**1. Innate immunity (fast, non-specific):** Pattern Recognition Receptors (PRRs) — especially Toll-like receptors on immune cells — detect conserved molecular patterns called PAMPs (Pathogen-Associated Molecular Patterns) shared by many pathogens (e.g., bacterial cell wall components, viral RNA). This triggers immediate inflammation.\n\n**2. Adaptive immunity (slow, specific):** Antigens (unique surface proteins) from the pathogen are presented by dendritic cells to T and B lymphocytes via MHC molecules. B cells produce antibodies that bind specifically to those antigens. Memory cells are then retained for faster future responses — this is the basis of vaccines.",
+      "The immune system uses a two-layer recognition system:\n\n**1. Innate immunity (fast, non-specific):** Pattern Recognition Receptors (PRRs) , especially Toll-like receptors on immune cells , detect conserved molecular patterns called PAMPs (Pathogen-Associated Molecular Patterns) shared by many pathogens (e.g., bacterial cell wall components, viral RNA). This triggers immediate inflammation.\n\n**2. Adaptive immunity (slow, specific):** Antigens (unique surface proteins) from the pathogen are presented by dendritic cells to T and B lymphocytes via MHC molecules. B cells produce antibodies that bind specifically to those antigens. Memory cells are then retained for faster future responses , this is the basis of vaccines.",
     model: "Claude 3.7",
     modelColor: "#818cf8",
     category: "Medical",
