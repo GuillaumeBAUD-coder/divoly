@@ -176,6 +176,18 @@ body {
   will-change: transform;
 }
 
+/* ── Hero galaxy ─────────────────────────────────────────── */
+
+@keyframes galaxy-drift {
+  0%   { transform: scale(1.00) translate(0, 0); }
+  50%  { transform: scale(1.03) translate(-8px, -6px); }
+  100% { transform: scale(1.00) translate(0, 0); }
+}
+.galaxy-drift {
+  animation: galaxy-drift 80s ease-in-out infinite;
+  will-change: transform;
+}
+
 /* ── Ticker ──────────────────────────────────────────────── */
 
 @keyframes ticker {
