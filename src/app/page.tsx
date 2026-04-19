@@ -133,40 +133,10 @@ export default function HomePage() {
       {/* ── Hero ──────────────────────────────────────────── */}
       <section className="relative px-6 pt-28 pb-20 text-center max-w-5xl mx-auto">
 
-        {/* Luminous Commons galaxy background — full-bleed behind hero */}
-        <div
-          aria-hidden
-          className="hero-galaxy pointer-events-none absolute inset-x-0 top-[-120px] bottom-[-80px] overflow-hidden"
-          style={{ zIndex: 0 }}
-        >
-          <div
-            className="absolute inset-0 galaxy-drift"
-            style={{
-              backgroundImage: "url(/hero-bg.png)",
-              backgroundSize: "cover",
-              backgroundPosition: "center",
-              backgroundRepeat: "no-repeat",
-              opacity: 0.82,
-              filter: "saturate(1.05) contrast(1.02)",
-            }}
-          />
-          {/* Soft vignette fade into page background */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse at 36% 50%, transparent 30%, #07070f 85%)",
-            }}
-          />
-          {/* Bottom blend into page */}
-          <div
-            className="absolute inset-x-0 bottom-0 h-40"
-            style={{
-              background:
-                "linear-gradient(to bottom, transparent 0%, #07070f 100%)",
-            }}
-          />
-        </div>
+        {/* Background orbs */}
+        <div className="hero-orb w-[500px] h-[500px] bg-indigo-600/20 top-[-100px] left-[-150px] orb-drift" />
+        <div className="hero-orb w-[400px] h-[400px] bg-purple-600/15 top-[100px] right-[-100px] orb-drift-rev" />
+        <div className="hero-orb w-[300px] h-[300px] bg-cyan-500/10 bottom-[-50px] left-[30%] orb-drift" style={{ animationDelay: "3s" }} />
 
         {/* Decorative logo above headline */}
         <div className="relative flex justify-center mb-6 fade-up">
