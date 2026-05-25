@@ -10,7 +10,7 @@ import { prisma } from "@/lib/db";
 import { answerSlug, categorySlug } from "@/lib/slugs";
 import { categorySeoPath, compareCategorySeoPath, getCategoryBySlug, getModelByName, modelCategorySeoPath } from "@/lib/seoRoutes";
 
-const SITE_URL = "https://divoly.com";
+const SITE_URL = "https://www.divoly.com";
 
 type PageProps = {
   params: Promise<{ category: string }>;

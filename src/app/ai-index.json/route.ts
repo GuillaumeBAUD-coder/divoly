@@ -2,7 +2,7 @@ import { CATEGORIES, MODELS } from "@/lib/data";
 import { prisma } from "@/lib/db";
 import { answerSlug, categorySlug, modelSlug } from "@/lib/slugs";
 
-const SITE_URL = "https://divoly.com";
+const SITE_URL = "https://www.divoly.com";
 
 function excerpt(value: string, length = 260) {
   const clean = value.replace(/\s+/g, " ").trim();

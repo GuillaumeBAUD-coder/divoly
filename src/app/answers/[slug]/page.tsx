@@ -83,32 +83,54 @@ export default async function SeoAnswerPage({ params }: PageProps) {
   }).catch(() => []);
 
   const paragraphs = answer.answer.split(/\n{2,}/).filter(Boolean);
-  const canonicalUrl = `https://divoly.com/answers/${answerSlug(answer)}`;
+  const canonicalUrl = `https://www.divoly.com/answers/${answerSlug(answer)}`;
   const contributorName = publicContributorLabel(answer.user);
   const showContributorLink = Boolean(answer.user?.name && !isSeedEmail(answer.user.email));
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "QAPage",
+    url: canonicalUrl,
+    name: answer.prompt,
     mainEntity: {
       "@type": "Question",
       name: answer.prompt,
+      text: answer.prompt,
       answerCount: 1,
+      datePublished: answer.createdAt,
+      dateModified: answer.updatedAt,
+      url: canonicalUrl,
+      author: {
+        "@type": "Person",
+        name: contributorName,
+      },
       acceptedAnswer: {
         "@type": "Answer",
-        text: answer.answer,
+        text: answer.answer.slice(0, 5000),
         upvoteCount: answer.upvotes,
+        datePublished: answer.createdAt,
         url: canonicalUrl,
         author: {
-          "@type": "Person",
-          name: contributorName,
+          "@type": "Organization",
+          name: answer.model,
+          url: `https://www.divoly.com/models/${answerSlug({ prompt: answer.model, model: answer.model, category: answer.category })}`,
         },
       },
     },
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Divoly", item: "https://www.divoly.com" },
+      { "@type": "ListItem", position: 2, name: answer.category, item: `https://www.divoly.com/categories/${categorySlug(answer.category)}` },
+      { "@type": "ListItem", position: 3, name: answer.prompt.slice(0, 60), item: canonicalUrl },
+    ],
   };
 
   return (
     <div className="explore-bg min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <nav className="glass sticky top-0 z-50 flex items-center justify-between px-6 py-4">
         <Link href="/"><DivolyWordmark height={32} /></Link>
         <div className="flex items-center gap-2">

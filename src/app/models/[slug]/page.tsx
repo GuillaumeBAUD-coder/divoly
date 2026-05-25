@@ -7,7 +7,7 @@ import { SeoAnswerCard } from "@/components/SeoAnswerCard";
 import { MODELS } from "@/lib/data";
 import { prisma } from "@/lib/db";
 import { modelCategorySeoPath } from "@/lib/seoRoutes";
-import { modelSlug } from "@/lib/slugs";
+import { answerSlug, modelSlug } from "@/lib/slugs";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -58,17 +58,38 @@ export default async function ModelPage({ params }: PageProps) {
 
   const categories = Array.from(new Set(answers.map((answer) => answer.category)));
 
+  const pageUrl = `https://www.divoly.com/models/${modelSlug(model.name)}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: `${model.name} AI answers`,
     description: `A searchable collection of AI answers generated with ${model.name}.`,
-    url: `https://divoly.com/models/${modelSlug(model.name)}`,
+    url: pageUrl,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: answers.length,
+      itemListElement: answers.slice(0, 10).map((answer, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://www.divoly.com/answers/${answerSlug(answer)}`,
+        name: answer.prompt,
+      })),
+    },
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Divoly", item: "https://www.divoly.com" },
+      { "@type": "ListItem", position: 2, name: "AI Models", item: "https://www.divoly.com/explore" },
+      { "@type": "ListItem", position: 3, name: model.name, item: pageUrl },
+    ],
   };
 
   return (
     <div className="explore-bg min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <nav className="glass sticky top-0 z-50 flex items-center justify-between px-6 py-4">
         <Link href="/"><DivolyWordmark height={32} /></Link>
         <Link href="/explore" className="btn-primary rounded-full px-4 py-2 text-sm font-medium">Explore</Link>

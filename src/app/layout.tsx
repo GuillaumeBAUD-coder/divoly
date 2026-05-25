@@ -31,9 +31,9 @@ export const metadata: Metadata = {
   },
   keywords: ["AI answers", "crowdsourced AI", "search AI responses", "prompt library", "AI knowledge base", "reusable AI answers"],
   other: {
-    "ai-content-index": "https://divoly.com/ai-index.json",
-    "llms-txt": "https://divoly.com/llms.txt",
-    "llms-full": "https://divoly.com/llms-full.txt",
+    "ai-content-index": "https://www.divoly.com/ai-index.json",
+    "llms-txt": "https://www.divoly.com/llms.txt",
+    "llms-full": "https://www.divoly.com/llms-full.txt",
   },
   robots: {
     index: true,

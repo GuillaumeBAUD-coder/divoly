@@ -244,8 +244,31 @@ export default function HomePage() {
     await performSearch(query);
   }
 
+  const websiteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: "Divoly",
+    url: "https://www.divoly.com",
+    description: "Crowdsourced library of real AI responses. Search once, find reusable answers instantly.",
+    potentialAction: {
+      "@type": "SearchAction",
+      target: { "@type": "EntryPoint", urlTemplate: "https://www.divoly.com/explore?q={search_term_string}" },
+      "query-input": "required name=search_term_string",
+    },
+  };
+  const orgJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "Divoly",
+    url: "https://www.divoly.com",
+    logo: "https://www.divoly.com/favicon-32.png",
+    sameAs: [],
+  };
+
   return (
     <div className="min-h-screen overflow-x-clip bg-[#07070f]">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <nav className="glass sticky top-0 z-50 flex items-center justify-between px-6 py-4">
         <Link href="/">
           <DivolyWordmark height={34} />

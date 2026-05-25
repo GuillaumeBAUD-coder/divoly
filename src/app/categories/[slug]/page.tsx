@@ -8,7 +8,7 @@ import { getContributorLeaderboard } from "@/lib/contributors";
 import { CATEGORIES } from "@/lib/data";
 import { prisma } from "@/lib/db";
 import { categorySeoPath, compareCategorySeoPath } from "@/lib/seoRoutes";
-import { categorySlug } from "@/lib/slugs";
+import { answerSlug, categorySlug } from "@/lib/slugs";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -59,17 +59,38 @@ export default async function CategoryPage({ params }: PageProps) {
   const categoryLeaders = await getContributorLeaderboard({ category: category.name, period: "all", limit: 3 }).catch(() => []);
 
   const totalViews = answers.reduce((sum, answer) => sum + answer.views, 0);
+  const pageUrl = `https://www.divoly.com/categories/${categorySlug(category.name)}`;
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "CollectionPage",
     name: `${category.name} AI answers`,
     description: `A searchable collection of AI answers for ${category.name.toLowerCase()} questions.`,
-    url: `https://divoly.com/categories/${categorySlug(category.name)}`,
+    url: pageUrl,
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: answers.length,
+      itemListElement: answers.slice(0, 10).map((answer, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://www.divoly.com/answers/${answerSlug(answer)}`,
+        name: answer.prompt,
+      })),
+    },
+  };
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Divoly", item: "https://www.divoly.com" },
+      { "@type": "ListItem", position: 2, name: "Categories", item: "https://www.divoly.com/explore" },
+      { "@type": "ListItem", position: 3, name: category.name, item: pageUrl },
+    ],
   };
 
   return (
     <div className="explore-bg min-h-screen">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbLd) }} />
       <nav className="glass sticky top-0 z-50 flex items-center justify-between px-6 py-4">
         <Link href="/"><DivolyWordmark height={32} /></Link>
         <Link href="/contribute" className="btn-primary rounded-full px-4 py-2 text-sm font-medium">+ Add Answer</Link>
