@@ -3,14 +3,17 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { ArrowLeft, Star, Eye, Copy, Check, Leaf, Share2 } from "lucide-react";
+import { ArrowLeft, Star, Eye, Copy, Check, DatabaseZap } from "lucide-react";
+import { AddToCollectionButton } from "@/components/AddToCollectionButton";
 import { DivolyWordmark } from "@/components/DivolyLogo";
+import { SaveAnswerButton } from "@/components/SaveAnswerButton";
+import { ShareButton } from "@/components/ShareButton";
 
 type Answer = {
   id: string; prompt: string; answer: string; model: string;
   modelColor: string; category: string; tags: string[];
   upvotes: number; views: number;
-  user: { name: string | null };
+  user: { name: string | null; isSeed?: boolean } | null;
   createdAt: string;
 };
 
@@ -75,12 +78,21 @@ export default function AnswerPage({ params }: { params: Promise<{ id: string }>
   }
 
   const paragraphs = answer.answer.split("\n\n");
+  const contributorLabel = answer.user?.isSeed
+    ? "Divoly library"
+    : answer.user?.name
+    ? `@${answer.user.name}`
+    : "Divoly contributor";
 
   return (
     <div className="min-h-screen" style={{ background: "#07070f" }}>
       <nav className="glass sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
         <Link href="/"><DivolyWordmark height={32} /></Link>
-        <Link href="/contribute" className="btn-primary text-sm px-4 py-2 rounded-full font-medium">+ Add Answer</Link>
+        <div className="flex items-center gap-2">
+          <Link href="/saved" className="btn-ghost rounded-full px-4 py-2 text-sm font-medium">Saved</Link>
+          <Link href="/account" className="btn-ghost hidden rounded-full px-4 py-2 text-sm font-medium sm:inline-flex">Account</Link>
+          <Link href="/contribute" className="btn-primary text-sm px-4 py-2 rounded-full font-medium">+ Add Answer</Link>
+        </div>
       </nav>
 
       <div className="max-w-3xl mx-auto px-6 py-12">
@@ -97,9 +109,9 @@ export default function AnswerPage({ params }: { params: Promise<{ id: string }>
         </div>
 
         <div className="flex items-center gap-3 glass rounded-xl px-4 py-3 mb-6">
-          <Leaf size={16} className="text-emerald-400 shrink-0" />
+          <DatabaseZap size={16} className="text-emerald-400 shrink-0" />
           <p className="text-sm text-white/60">
-            You just saved ~<span className="text-emerald-400 font-medium">0.003 kWh</span> of energy by reading a cached answer instead of querying an AI.
+            You are reading an existing public answer instead of starting from a blank chat.
           </p>
         </div>
 
@@ -138,14 +150,13 @@ export default function AnswerPage({ params }: { params: Promise<{ id: string }>
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4 text-sm text-white/40">
             <span className="flex items-center gap-1.5"><Eye size={14} /> {answer.views.toLocaleString()} views</span>
-            <span>by <span className="text-indigo-400">@{answer.user?.name ?? "contributor"}</span></span>
+            <span>by <span className="text-orange-300">{contributorLabel}</span></span>
             <span>{new Date(answer.createdAt).toLocaleDateString()}</span>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={copyAnswer}
-              className="flex items-center gap-1.5 glass glass-card rounded-xl px-3 py-2 text-xs text-white/50 hover:text-white">
-              <Share2 size={13} /> Share
-            </button>
+            <AddToCollectionButton answerId={answer.id} />
+            <SaveAnswerButton answerId={answer.id} compact />
+            <ShareButton title={answer.prompt} text={`A reusable AI answer on Divoly: ${answer.prompt}`} url={`/answer/${answer.id}`} compact label="Share" />
             <button onClick={handleVote}
               className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-all"
               style={{ background: upvoted ? "rgba(250,204,21,0.15)" : "rgba(255,255,255,0.05)", color: upvoted ? "#facc15" : "rgba(255,255,255,0.5)", border: `1px solid ${upvoted ? "rgba(250,204,21,0.3)" : "rgba(255,255,255,0.08)"}` }}>

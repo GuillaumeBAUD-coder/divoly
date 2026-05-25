@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Eye, EyeOff, Leaf } from "lucide-react";
 import { DivolyWordmark } from "@/components/DivolyLogo";
+import { GoogleAuthButton } from "@/components/GoogleAuthButton";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -56,6 +57,15 @@ export default function RegisterPage() {
             <h1 className="text-xl font-bold text-white">Join divoly</h1>
           </div>
           <p className="text-white/40 text-sm mb-7">Start contributing answers to the eco-AI library</p>
+
+          <div className="mb-6 space-y-5">
+            <GoogleAuthButton label="Sign up with Google" />
+            <div className="flex items-center gap-3 text-xs uppercase tracking-[0.24em] text-white/25">
+              <div className="h-px flex-1 bg-white/10" />
+              <span>Email</span>
+              <div className="h-px flex-1 bg-white/10" />
+            </div>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>

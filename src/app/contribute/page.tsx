@@ -1,32 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, CheckCircle, Leaf, Info } from "lucide-react";
-import { CATEGORIES } from "@/lib/data";
+import { ArrowLeft, CheckCircle, Info } from "lucide-react";
+import { CATEGORIES, MODELS } from "@/lib/data";
 import { DivolyWordmark } from "@/components/DivolyLogo";
 
-const MODELS = [
-  { name: "GPT-4o", color: "#10b981" },
-  { name: "GPT-4", color: "#10b981" },
-  { name: "Claude 3.7", color: "#818cf8" },
-  { name: "Claude 3.5", color: "#818cf8" },
-  { name: "Gemini 1.5", color: "#f59e0b" },
-  { name: "Gemini 2.0", color: "#f59e0b" },
-  { name: "Llama 3", color: "#38bdf8" },
-  { name: "Mistral", color: "#fb7185" },
-  { name: "Other", color: "#a1a1aa" },
-];
 
 export default function ContributePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const [requestedPrompt, setRequestedPrompt] = useState("");
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState({ prompt: "", answer: "", model: "", modelColor: "#818cf8", category: "", tags: "" });
+  const [form, setForm] = useState({ prompt: "", answer: "", model: "", modelColor: "#3b82f6", category: "", tags: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const request = new URLSearchParams(window.location.search).get("request") ?? "";
+    if (!request) return;
+
+    const timeout = window.setTimeout(() => {
+      setRequestedPrompt(request);
+      setForm((current) => (current.prompt ? current : { ...current, prompt: request }));
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -75,14 +77,16 @@ export default function ContributePage() {
           <ArrowLeft size={14} /> Back
         </Link>
         <h1 className="text-3xl font-bold text-white mb-2">Contribute an answer</h1>
-        <p className="text-white/50 mb-8 text-sm">Share a prompt + AI response you received.</p>
+        <p className="text-white/50 mb-8 text-sm">
+          {requestedPrompt ? "You are answering a public request from the demand board." : "Share a prompt + AI response you received."}
+        </p>
 
         {step < 3 && (
           <div className="flex items-center gap-2 mb-8">
             {[1, 2].map((s) => (
               <div key={s} className="flex items-center gap-2">
                 <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all"
-                  style={{ background: step >= s ? "linear-gradient(135deg,#6366f1,#8b5cf6)" : "rgba(255,255,255,0.08)", color: step >= s ? "white" : "rgba(255,255,255,0.3)" }}>
+                  style={{ background: step >= s ? "linear-gradient(135deg,#7c3aed,#3b82f6)" : "rgba(255,255,255,0.08)", color: step >= s ? "white" : "rgba(255,255,255,0.3)" }}>
                   {s}
                 </div>
                 <span className="text-xs text-white/40">{s === 1 ? "Prompt & Answer" : "Details"}</span>
@@ -100,11 +104,11 @@ export default function ContributePage() {
             <h2 className="text-2xl font-bold text-white mb-3">Contribution submitted!</h2>
             <p className="text-white/50 mb-2">Your answer is now searchable on Divoly.</p>
             <div className="flex items-center justify-center gap-2 text-sm text-emerald-400 mb-8">
-              <Leaf size={14} /><span>You just helped save ~0.003 kWh ♻️</span>
+              <CheckCircle size={14} /><span>Your contribution is now part of the public answer library.</span>
             </div>
             <div className="flex items-center justify-center gap-3">
               <Link href="/" className="btn-primary px-6 py-3 rounded-xl font-medium text-sm">Back to search</Link>
-              <button onClick={() => { setStep(1); setForm({ prompt: "", answer: "", model: "", modelColor: "#818cf8", category: "", tags: "" }); }}
+              <button onClick={() => { setStep(1); setForm({ prompt: "", answer: "", model: "", modelColor: "#3b82f6", category: "", tags: "" }); }}
                 className="glass rounded-xl px-6 py-3 text-sm text-white/60 hover:text-white transition-colors">
                 Add another
               </button>
@@ -148,7 +152,7 @@ export default function ContributePage() {
                       <button key={m.name} type="button"
                         onClick={() => setForm({ ...form, model: m.name, modelColor: m.color })}
                         className="text-sm py-2 px-3 rounded-xl transition-all text-left"
-                        style={{ background: form.model === m.name ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.04)", border: `1px solid ${form.model === m.name ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.07)"}`, color: form.model === m.name ? "#818cf8" : "rgba(255,255,255,0.5)" }}>
+                        style={{ background: form.model === m.name ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.04)", border: `1px solid ${form.model === m.name ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.07)"}`, color: form.model === m.name ? "#3b82f6" : "rgba(255,255,255,0.5)" }}>
                         {m.name}
                       </button>
                     ))}
@@ -162,7 +166,7 @@ export default function ContributePage() {
                       <button key={cat.name} type="button"
                         onClick={() => setForm({ ...form, category: cat.name })}
                         className="text-sm py-2 px-3 rounded-xl transition-all text-left"
-                        style={{ background: form.category === cat.name ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.04)", border: `1px solid ${form.category === cat.name ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.07)"}`, color: form.category === cat.name ? "#818cf8" : "rgba(255,255,255,0.5)" }}>
+                        style={{ background: form.category === cat.name ? "rgba(59,130,246,0.2)" : "rgba(255,255,255,0.04)", border: `1px solid ${form.category === cat.name ? "rgba(59,130,246,0.5)" : "rgba(255,255,255,0.07)"}`, color: form.category === cat.name ? "#3b82f6" : "rgba(255,255,255,0.5)" }}>
                         {cat.icon} {cat.name}
                       </button>
                     ))}

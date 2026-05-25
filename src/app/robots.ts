@@ -4,5 +4,6 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: "*", allow: "/", disallow: "/api/" },
     sitemap: "https://divoly.com/sitemap.xml",
+    host: "https://divoly.com",
   };
 }

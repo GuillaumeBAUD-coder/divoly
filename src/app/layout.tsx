@@ -6,7 +6,7 @@ import { PageViewTracker } from "@/components/PageViewTracker";
 
 export const metadata: Metadata = {
   title: "Divoly | Search AI Answers, Not AI",
-  description: "Divoly is a crowdsourced library of real AI responses. Search once, find answers instantly, no inference, no energy waste. Contributed by the community.",
+  description: "Divoly is a crowdsourced library of real AI responses. Search once, find reusable answers instantly, and avoid asking the same question again.",
   metadataBase: new URL("https://divoly.com"),
   icons: {
     icon: [
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Divoly | Search AI Answers, Not AI",
-    description: "Crowdsourced AI answers you can search instantly. No inference. No energy waste. Just knowledge shared by the community.",
+    description: "Crowdsourced AI answers you can search instantly. Reusable knowledge shared by the community.",
     url: "https://divoly.com",
     siteName: "Divoly",
     locale: "en_US",
@@ -27,9 +27,14 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary",
     title: "Divoly | Search AI Answers, Not AI",
-    description: "Crowdsourced AI answers you can search instantly. No inference. No energy waste.",
+    description: "Crowdsourced AI answers you can search instantly and reuse.",
   },
-  keywords: ["AI answers", "crowdsourced AI", "search AI responses", "prompt library", "AI knowledge base", "eco AI", "zero inference"],
+  keywords: ["AI answers", "crowdsourced AI", "search AI responses", "prompt library", "AI knowledge base", "reusable AI answers"],
+  other: {
+    "ai-content-index": "https://divoly.com/ai-index.json",
+    "llms-txt": "https://divoly.com/llms.txt",
+    "llms-full": "https://divoly.com/llms-full.txt",
+  },
   robots: {
     index: true,
     follow: true,

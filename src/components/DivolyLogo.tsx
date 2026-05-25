@@ -29,16 +29,13 @@ function buildSpiral() {
 const DOTS = buildSpiral();
 
 function interpolateColor(t: number): string {
-  // outer (t=0): purple #9333ea
-  // mid   (t=0.4): blue #3b82f6
-  // inner (t=0.75): cyan #22d3ee
-  // core  (t=1): white #ffffff
+  // outer ember -> burnt orange -> tangerine -> amber cream
   type RGB = [number, number, number];
   const stops: [number, RGB][] = [
-    [0,    [147, 51,  234]],
-    [0.35, [99,  102, 241]],
-    [0.6,  [59,  130, 246]],
-    [0.8,  [34,  211, 238]],
+    [0,    [154, 52,  18]],
+    [0.35, [234, 88,  12]],
+    [0.6,  [249, 115, 22]],
+    [0.8,  [251, 191, 36]],
     [1,    [255, 255, 255]],
   ];
   let lo = stops[0], hi = stops[stops.length - 1];
@@ -69,14 +66,14 @@ export function DivolyLogo({ size = 40, className = "", animated = false }: Prop
       <defs>
         {/* Deep navy background */}
         <radialGradient id="bg" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stopColor="#0d1b3e" />
-          <stop offset="100%" stopColor="#050a1a" />
+          <stop offset="0%" stopColor="#2a1004" />
+          <stop offset="100%" stopColor="#090504" />
         </radialGradient>
         {/* Core glow */}
         <radialGradient id="glow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.9" />
-          <stop offset="40%" stopColor="#67e8f9" stopOpacity="0.5" />
-          <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
+          <stop offset="40%" stopColor="#fed7aa" stopOpacity="0.5" />
+          <stop offset="100%" stopColor="#f97316" stopOpacity="0" />
         </radialGradient>
         <filter id="blur-core">
           <feGaussianBlur stdDeviation="1.5" />

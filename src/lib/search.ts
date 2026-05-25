@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import type { Prisma } from "@prisma/client";
+import { isSeedEmail } from "@/lib/publicData";
 
 export async function searchAnswers(query: string, category?: string, model?: string, sort = "upvotes") {
   const where: Prisma.AnswerWhereInput = {};
@@ -24,10 +25,15 @@ export async function searchAnswers(query: string, category?: string, model?: st
       ? { createdAt: "desc" }
       : { upvotes: "desc" };
 
-  return prisma.answer.findMany({
+  const answers = await prisma.answer.findMany({
     where,
     orderBy,
     take: 30,
-    include: { user: { select: { name: true } } },
+    include: { user: { select: { name: true, email: true } } },
   });
+
+  return answers.map((answer) => ({
+    ...answer,
+    user: answer.user ? { name: isSeedEmail(answer.user.email) ? null : answer.user.name } : null,
+  }));
 }

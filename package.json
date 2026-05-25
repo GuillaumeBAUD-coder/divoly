@@ -10,6 +10,7 @@
     "lint": "eslint",
     "db:migrate": "prisma migrate dev",
     "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
+    "db:seed:gpt55": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/replace-gpt55-answers.ts",
     "db:studio": "prisma studio",
     "db:reset": "prisma migrate reset --force && npm run db:seed"
   },

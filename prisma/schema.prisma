@@ -10,12 +10,17 @@ model User {
   id        String   @id @default(cuid())
   email     String   @unique
   name      String?
-  password  String
+  password  String?
   image     String?
   bio       String?
   createdAt DateTime @default(now())
   answers   Answer[]
+  requests  AnswerRequest[]
   votes     Vote[]
+  savedAnswers SavedAnswer[]
+  collections AnswerCollection[]
+  followedRequests FollowedRequest[]
+  searchHistory SearchHistory[]
   sessions  Session[]
   accounts  Account[]
 }
@@ -35,10 +40,51 @@ model Answer {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   votes       Vote[]
+  savedBy     SavedAnswer[]
+  collectionItems CollectionItem[]
 
   @@index([category])
   @@index([model])
   @@index([createdAt(sort: Desc)])
+}
+
+model SavedAnswer {
+  id        String   @id @default(cuid())
+  userId    String
+  answerId  String
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answer    Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, answerId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([answerId])
+}
+
+model AnswerCollection {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       CollectionItem[]
+
+  @@index([userId, updatedAt(sort: Desc)])
+}
+
+model CollectionItem {
+  id           String           @id @default(cuid())
+  collectionId String
+  answerId     String
+  createdAt    DateTime         @default(now())
+  collection   AnswerCollection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+  answer       Answer           @relation(fields: [answerId], references: [id], onDelete: Cascade)
+
+  @@unique([collectionId, answerId])
+  @@index([collectionId, createdAt(sort: Desc)])
+  @@index([answerId])
 }
 
 model Vote {
@@ -51,6 +97,52 @@ model Vote {
   answer    Answer   @relation(fields: [answerId], references: [id], onDelete: Cascade)
 
   @@unique([userId, answerId])
+}
+
+model AnswerRequest {
+  id              String   @id @default(cuid())
+  query           String   @db.Text
+  normalizedQuery String   @unique
+  category        String?
+  status          String   @default("open")
+  requestCount    Int      @default(1)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  userId          String?
+  user            User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  followers       FollowedRequest[]
+
+  @@index([status, requestCount(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
+}
+
+model FollowedRequest {
+  id        String        @id @default(cuid())
+  userId    String
+  requestId String
+  createdAt DateTime      @default(now())
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  request   AnswerRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, requestId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([requestId])
+}
+
+model SearchHistory {
+  id              String   @id @default(cuid())
+  userId          String
+  query           String   @db.Text
+  normalizedQuery String
+  category        String?
+  model           String?
+  resultCount     Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, normalizedQuery])
+  @@index([userId, updatedAt(sort: Desc)])
 }
 
 model Account {

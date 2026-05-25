@@ -2,6 +2,7 @@ import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 import "dotenv/config";
+import { GPT55_SIMPLE_ANSWERS } from "./gpt55-simple-answers";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
 const prisma = new PrismaClient({ adapter });
@@ -17,539 +18,1535 @@ const SEED_USERS = [
   { name: "legalbeagle", email: "legal@seed.echoai.dev" },
 ];
 
-const QA_PAIRS = [
-  // ── CODING ───────────────────────────────────────────────────────
+type SeedAnswer = {
+  prompt: string;
+  answer: string;
+  model: string;
+  modelColor: string;
+  category: string;
+  tags: string[];
+  upvotes: number;
+  views: number;
+  user: string;
+};
+
+const QA_PAIRS: SeedAnswer[] = [
   {
-    prompt: "Explain recursion in Python with a simple example",
-    answer: `Recursion is when a function calls itself to solve smaller instances of the same problem. Here's a classic example with factorial:
+    prompt: "How do I center a div in CSS?",
+    answer: `The cleanest modern way is usually **Flexbox**.
 
-\`\`\`python
-def factorial(n):
-    if n <= 1:  # base case
-        return 1
-    return n * factorial(n - 1)  # recursive call
-
-print(factorial(5))  # Output: 120
+\`\`\`css
+.parent {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 \`\`\`
 
-Every recursive function needs: 1) A **base case** (to stop), and 2) A **recursive case** (to reduce the problem). Without a base case, you get infinite recursion and a stack overflow.`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Coding",
-    tags: ["python", "recursion", "functions"], upvotes: 342, views: 4821, user: "alex@seed.echoai.dev",
-  },
-  {
-    prompt: "What is the difference between TCP and UDP?",
-    answer: `**TCP (Transmission Control Protocol)** is connection-oriented — it establishes a connection before sending data, guarantees delivery, order, and error-checking. Great for: web browsing, email, file transfers.
+- **justify-content** centers horizontally
+- **align-items** centers vertically
 
-**UDP (User Datagram Protocol)** is connectionless — it fires packets without confirming receipt. Faster but unreliable. Great for: video streaming, online gaming, DNS lookups.
+If you only need horizontal centering for a block element with a fixed width, you can also use:
 
-Simple analogy: TCP is a certified letter (you know it arrived). UDP is a flyer thrown into a crowd (some might catch it, some won't).`,
-    model: "Claude 3.5", modelColor: "#818cf8", category: "Coding",
-    tags: ["networking", "tcp", "udp", "protocols"], upvotes: 218, views: 3102, user: "net@seed.echoai.dev",
-  },
-  {
-    prompt: "What is the difference between == and === in JavaScript?",
-    answer: `**== (loose equality)** compares values after type coercion — JavaScript converts operands to the same type before comparing.
-
-**=== (strict equality)** compares both value AND type — no coercion occurs.
-
-Examples:
-\`\`\`javascript
-0 == false   // true  (false coerces to 0)
-0 === false  // false (different types)
-"" == false  // true
-"" === false // false
-null == undefined  // true
-null === undefined // false
+\`\`\`css
+.box {
+  width: 300px;
+  margin: 0 auto;
+}
 \`\`\`
 
-**Rule of thumb:** always use === unless you have a specific reason for loose comparison.`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Coding",
-    tags: ["javascript", "equality", "types"], upvotes: 289, views: 5203, user: "alex@seed.echoai.dev",
+If you are using Tailwind, the common pattern is:
+\`flex items-center justify-center\`.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Coding",
+    tags: ["css", "frontend", "layout", "html"],
+    upvotes: 612,
+    views: 12600,
+    user: "alex@seed.echoai.dev",
   },
   {
-    prompt: "What is Big O notation? Explain with examples.",
-    answer: `Big O notation describes how an algorithm's time or space requirements grow as input size (n) grows. It gives an upper bound on complexity.
+    prompt: "What is an API in simple terms?",
+    answer: `An **API** is a way for two pieces of software to talk to each other.
 
-**Common complexities (best → worst):**
-- **O(1)** — Constant: array index lookup
-- **O(log n)** — Logarithmic: binary search
-- **O(n)** — Linear: iterating an array
-- **O(n log n)** — Linearithmic: merge sort, quicksort (avg)
-- **O(n²)** — Quadratic: nested loops, bubble sort
-- **O(2ⁿ)** — Exponential: recursive fibonacci
+Simple analogy: when you order food in a restaurant:
+- **you** are the app or user
+- **the waiter** is the API
+- **the kitchen** is the server or system doing the work
 
-Key insight: Big O ignores constants and lower-order terms. O(3n + 100) simplifies to O(n).`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "Coding",
-    tags: ["algorithms", "big-o", "complexity", "computer-science"], upvotes: 401, views: 6700, user: "alex@seed.echoai.dev",
+You do not go into the kitchen yourself. You send a request through the waiter, and the waiter brings back the result.
+
+In software, an API lets one app request data or actions from another app, for example:
+- get weather data
+- create a payment
+- log a user in
+- fetch products from a store
+
+APIs are often used over HTTP with actions like:
+- **GET** for reading data
+- **POST** for creating something
+- **PATCH** for updating
+- **DELETE** for removing`,
+    model: "Claude 3.7",
+    modelColor: "#818cf8",
+    category: "Coding",
+    tags: ["api", "http", "backend", "web"],
+    upvotes: 488,
+    views: 9400,
+    user: "net@seed.echoai.dev",
   },
   {
-    prompt: "How does async/await work in Python?",
-    answer: `async/await in Python is built on top of the asyncio event loop. It lets you write concurrent code that looks synchronous.
+    prompt: "What is the difference between front-end and back-end development?",
+    answer: `**Front-end** is the part users see and interact with.
+It includes things like:
+- layout
+- buttons
+- forms
+- colors
+- animations
 
-\`\`\`python
-import asyncio
+Common front-end tools: HTML, CSS, JavaScript, React, Next.js.
 
-async def fetch_data(url: str) -> str:
-    await asyncio.sleep(1)  # simulates I/O wait
-    return f"data from {url}"
+**Back-end** is the part behind the scenes.
+It handles things like:
+- databases
+- authentication
+- business logic
+- APIs
+- payments
 
-async def main():
-    # Run two fetches concurrently
-    result1, result2 = await asyncio.gather(
-        fetch_data("api.example.com/users"),
-        fetch_data("api.example.com/posts"),
-    )
-    print(result1, result2)
+Common back-end tools: Node.js, Python, Java, Ruby, PostgreSQL.
 
-asyncio.run(main())
+Simple way to remember it:
+- **front-end** = what the user sees
+- **back-end** = what makes it work
+
+Most real products need both.`,
+    model: "Gemini 1.5",
+    modelColor: "#f59e0b",
+    category: "Coding",
+    tags: ["frontend", "backend", "web-development", "basics"],
+    upvotes: 421,
+    views: 8100,
+    user: "alex@seed.echoai.dev",
+  },
+  {
+    prompt: "How do I write a professional email asking for an update?",
+    answer: `A strong follow-up email is short, polite, and easy to answer.
+
+Template:
+
+\`\`\`
+Subject: Quick follow-up on [topic]
+
+Hi [Name],
+
+I hope you're doing well. I wanted to follow up on [project / application / request] and see if there are any updates when you have a moment.
+
+Please let me know if you need anything else from me.
+
+Best,
+[Your name]
 \`\`\`
 
-**Key concepts:**
-- **async def** defines a coroutine
-- **await** pauses execution until the awaited coroutine completes, yielding control to the event loop
-- **asyncio.gather()** runs multiple coroutines concurrently`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Coding",
-    tags: ["python", "async", "asyncio", "concurrency"], upvotes: 267, views: 4100, user: "alex@seed.echoai.dev",
+Tips:
+- keep it under 6 lines
+- avoid sounding frustrated
+- remind them what you are asking about
+- include a clear subject line
+
+If this is a second follow-up, you can add:
+"I know things get busy, so I just wanted to check in once more."`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Writing",
+    tags: ["email", "communication", "professional-writing", "follow-up"],
+    upvotes: 534,
+    views: 11100,
+    user: "career@seed.echoai.dev",
   },
   {
-    prompt: "Explain SQL JOINs with a clear example",
-    answer: `SQL JOINs combine rows from two tables based on a related column.
+    prompt: "How should I answer 'Tell me about yourself' in a job interview?",
+    answer: `A good answer is short, structured, and relevant to the job.
 
-Given: **users** (id, name) and **orders** (id, user_id, product)
+Use this formula:
+**present -> past -> why this role**
 
-**INNER JOIN** — only rows that match in both tables:
-\`\`\`sql
-SELECT users.name, orders.product
-FROM users
-INNER JOIN orders ON users.id = orders.user_id;
--- Returns users who have orders
-\`\`\`
+Example:
+"I'm currently working as a customer support specialist, where I help users solve issues quickly and clearly. Before that, I studied business and took on a few internships that taught me how to work with teams and deadlines. What interests me about this role is the chance to use those communication skills in a more growth-focused environment."
 
-**LEFT JOIN** — all rows from left table, matched rows from right (NULL if no match):
-\`\`\`sql
-SELECT users.name, orders.product
-FROM users
-LEFT JOIN orders ON users.id = orders.user_id;
--- Returns ALL users, even those with no orders
-\`\`\`
+What makes this work:
+- it starts with where you are now
+- it gives a little context from the past
+- it ends with why you are here
 
-**RIGHT JOIN** — opposite of LEFT JOIN.
-**FULL OUTER JOIN** — all rows from both tables.
-
-Memory trick: think of Venn diagrams. INNER = intersection, LEFT = left circle + intersection.`,
-    model: "Gemini 1.5", modelColor: "#f59e0b", category: "Coding",
-    tags: ["sql", "database", "joins"], upvotes: 312, views: 5800, user: "net@seed.echoai.dev",
+Keep it to about **45 to 90 seconds**.
+Do not tell your whole life story.
+Focus on the parts that make sense for the role you want.`,
+    model: "Claude 3.7",
+    modelColor: "#818cf8",
+    category: "Writing",
+    tags: ["job-interview", "career", "job-search", "communication"],
+    upvotes: 603,
+    views: 12400,
+    user: "career@seed.echoai.dev",
   },
   {
-    prompt: "What is a REST API and how does it work?",
-    answer: `A **REST API** (Representational State Transfer) is an architectural style for building web services. It uses standard HTTP methods to perform operations on resources.
+    prompt: "How do I write a good resume summary?",
+    answer: `A resume summary is a short 2-4 line section at the top of your resume that tells recruiters who you are and what you bring.
 
-**Core principles:**
-- **Stateless** — each request contains all info needed; server stores no client state
-- **Resource-based** — everything is a resource with a URL (e.g., /users/42)
-- **HTTP methods as actions:**
-  - GET → read
-  - POST → create
-  - PUT/PATCH → update
-  - DELETE → delete
+Good formula:
+**role + years of experience + strengths + result**
 
-**Example:**
-\`\`\`
-GET    /users        → list all users
-GET    /users/42     → get user 42
-POST   /users        → create a user
-PATCH  /users/42     → update user 42
-DELETE /users/42     → delete user 42
-\`\`\`
+Example:
+"Marketing coordinator with 3 years of experience in content, email campaigns, and social media. Strong at turning ideas into clear campaigns that improve engagement and conversions. Known for being organized, fast-moving, and easy to work with across teams."
 
-Responses are typically JSON. Status codes communicate results: 200 OK, 201 Created, 404 Not Found, 401 Unauthorized.`,
-    model: "Claude 3.5", modelColor: "#818cf8", category: "Coding",
-    tags: ["api", "rest", "http", "web"], upvotes: 198, views: 3900, user: "net@seed.echoai.dev",
-  },
+Tips:
+- keep it specific, not generic
+- mention your main area of work
+- include 2 or 3 strengths
+- write in plain language
+- avoid empty phrases like "hardworking professional"
 
-  // ── SCIENCE ──────────────────────────────────────────────────────
-  {
-    prompt: "What causes the northern lights (aurora borealis)?",
-    answer: `The aurora borealis is caused by charged particles (mainly electrons and protons) from the Sun colliding with gas molecules in Earth's atmosphere.
-
-Here's the chain: The Sun emits a stream of particles called the **solar wind**. Earth's magnetic field deflects most of them, but near the poles the field lines converge and funnel particles down into the upper atmosphere (~100–300 km up). When these particles collide with oxygen and nitrogen, they excite the atoms, which release energy as light. Different gases produce different colors: oxygen at ~60 miles → green; oxygen at ~200 miles → red; nitrogen → blue/purple.`,
-    model: "Gemini 1.5", modelColor: "#f59e0b", category: "Science",
-    tags: ["aurora", "solar-wind", "atmosphere", "physics"], upvotes: 487, views: 7203, user: "science@seed.echoai.dev",
-  },
-  {
-    prompt: "How does CRISPR gene editing work?",
-    answer: `CRISPR-Cas9 is a gene editing tool adapted from a bacterial immune system. It works like molecular scissors guided by GPS.
-
-**Components:**
-1. **Guide RNA (gRNA)** — a ~20-nucleotide sequence that matches your target DNA
-2. **Cas9 protein** — an enzyme that cuts DNA
-
-**Process:**
-1. You design a gRNA matching the DNA you want to edit
-2. Cas9 + gRNA complex scans the genome until it finds the matching sequence
-3. Cas9 cuts both strands of DNA at that location
-4. The cell repairs the cut — either disrupting the gene (knockout) or inserting new DNA (if you provide a template)
-
-**Why it's revolutionary:** Previous gene editing tools were slow and expensive. CRISPR cuts the time from months to days and costs from millions to thousands of dollars.`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "Science",
-    tags: ["crispr", "genetics", "dna", "biology"], upvotes: 523, views: 8901, user: "science@seed.echoai.dev",
-  },
-  {
-    prompt: "What is quantum entanglement in simple terms?",
-    answer: `Quantum entanglement is when two particles become correlated so that measuring one instantly determines the state of the other — no matter how far apart they are.
-
-**Simple analogy:** Imagine two magic gloves, one placed in New York and one in Tokyo. When you open the New York box and find a left glove, you instantly know the Tokyo glove is a right glove — even without looking. Entanglement is similar, but stranger: the gloves don't "decide" which hand they are until one is observed.
-
-**Key points:**
-- Entangled particles don't "send signals" to each other — this doesn't allow faster-than-light communication
-- Measuring one particle collapses both into definite states simultaneously
-- Einstein called it "spooky action at a distance" — he didn't like it but it's been experimentally confirmed many times
-
-It's the basis for quantum computing and quantum cryptography.`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Science",
-    tags: ["quantum-physics", "entanglement", "physics"], upvotes: 634, views: 10200, user: "science@seed.echoai.dev",
+Think of it as the short version of your value.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Writing",
+    tags: ["resume", "career", "job-search", "professional-writing"],
+    upvotes: 487,
+    views: 9800,
+    user: "career@seed.echoai.dev",
   },
   {
     prompt: "Why is the sky blue?",
-    answer: `The sky is blue because of **Rayleigh scattering** — the way sunlight interacts with air molecules.
+    answer: `The sky looks blue because of **Rayleigh scattering**.
 
-Sunlight contains all colors (wavelengths) of visible light. When it enters Earth's atmosphere, it collides with gas molecules (mostly nitrogen and oxygen). These molecules scatter light in all directions, but they scatter shorter wavelengths (blue, violet) much more strongly than longer wavelengths (red, orange) — about 10× more.
+Sunlight contains many colors. When sunlight enters Earth's atmosphere, it collides with tiny gas molecules. Shorter wavelengths of light, especially blue, scatter much more than longer wavelengths like red.
 
-So blue light gets scattered across the entire sky, while red/orange light passes through more directly (which is why sunsets are red — light must travel through more atmosphere at a low angle, scattering away all the blue).
+That scattered blue light spreads across the sky in all directions, so when you look up, you see blue.
 
-Fun fact: violet light is actually scattered even more than blue, but our eyes are less sensitive to violet and the Sun emits less violet, so we perceive the sky as blue.`,
-    model: "Gemini 1.5", modelColor: "#f59e0b", category: "Science",
-    tags: ["atmosphere", "light", "physics", "optics"], upvotes: 389, views: 6100, user: "science@seed.echoai.dev",
-  },
+Why sunsets look red:
+- at sunset, sunlight travels through more atmosphere
+- much of the blue light gets scattered away before it reaches your eyes
+- the remaining light looks more red or orange
 
-  // ── MATH ─────────────────────────────────────────────────────────
-  {
-    prompt: "What is compound interest and how is it calculated?",
-    answer: `Compound interest is interest calculated on both the **initial principal** and the **accumulated interest** from previous periods.
-
-Formula: **A = P(1 + r/n)^(nt)**
-
-Where:
-- A = final amount
-- P = principal (initial investment)
-- r = annual interest rate (decimal)
-- n = times interest compounds per year
-- t = time in years
-
-Example: $1,000 at 5% compounded annually for 10 years:
-A = 1000(1 + 0.05/1)^(1×10) = **$1,628.89**
-
-Vs simple interest: 1000 × (1 + 0.05 × 10) = $1,500. Compound gives you $128.89 more — and the gap grows exponentially over time.`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Math",
-    tags: ["finance", "investing", "compound-interest"], upvotes: 293, views: 5411, user: "finance@seed.echoai.dev",
+So the short version is:
+the atmosphere scatters blue light more strongly than other visible colors.`,
+    model: "Gemini 1.5",
+    modelColor: "#f59e0b",
+    category: "Science",
+    tags: ["science", "light", "atmosphere", "physics"],
+    upvotes: 566,
+    views: 11700,
+    user: "science@seed.echoai.dev",
   },
   {
-    prompt: "Explain the Pythagorean theorem and give a real-world example",
-    answer: `The Pythagorean theorem states that in a right triangle: **a² + b² = c²**, where c is the hypotenuse (the side opposite the right angle).
+    prompt: "How do vaccines work?",
+    answer: `Vaccines train your immune system to recognize a harmful germ **before** you encounter the real infection.
 
-**Proof intuition:** if you draw squares on each side of a right triangle, the area of the square on the hypotenuse equals the sum of the areas of the other two squares.
+They usually do this by showing your body a safe version of part of the virus or bacterium, or instructions for making that part. Your immune system responds by creating:
+- antibodies
+- memory cells
 
-**Real-world example:** You need to mount a TV antenna on your roof. The roof is 4 meters high and you need to run a cable horizontally 3 meters from the wall to the pole. How long is the cable?
+Later, if the real germ enters your body, your immune system can react much faster.
 
-c² = 4² + 3² = 16 + 9 = 25
-c = √25 = **5 meters**
+This helps:
+- prevent infection entirely in some cases
+- reduce how severe the illness becomes
+- lower the chance of spreading disease
 
-Other uses: GPS coordinates, computer graphics (distance between two points), construction (checking if corners are square using the 3-4-5 rule).`,
-    model: "Claude 3.5", modelColor: "#818cf8", category: "Math",
-    tags: ["geometry", "pythagorean", "triangles"], upvotes: 176, views: 2800, user: "science@seed.echoai.dev",
+The key idea is:
+vaccines prepare your immune system ahead of time, without making you go through the full danger of the disease itself.`,
+    model: "Claude 3.7",
+    modelColor: "#818cf8",
+    category: "Science",
+    tags: ["vaccines", "biology", "immune-system", "health"],
+    upvotes: 518,
+    views: 10200,
+    user: "med@seed.echoai.dev",
   },
   {
-    prompt: "What is a derivative in calculus? Explain intuitively.",
-    answer: `A derivative measures the **instantaneous rate of change** of a function — how fast the output is changing at a specific point.
+    prompt: "What is photosynthesis?",
+    answer: `Photosynthesis is the process plants use to turn **sunlight, water, and carbon dioxide** into **glucose** (food) and oxygen.
 
-**Intuition:** Imagine driving a car. Your position changes over time. The derivative of your position is your **speed** (velocity). The derivative of your speed is your **acceleration**.
+The basic idea:
+- plants absorb sunlight with chlorophyll
+- they take in carbon dioxide from the air
+- they absorb water through their roots
+- they use that energy to make sugar
 
-Formally: the derivative f'(x) is the slope of the tangent line to f(x) at point x.
+The simplified formula is:
 
 \`\`\`
-f'(x) = lim(h→0) [f(x+h) - f(x)] / h
+carbon dioxide + water + sunlight -> glucose + oxygen
 \`\`\`
 
-**Common derivatives:**
-- d/dx(xⁿ) = nxⁿ⁻¹  (power rule)
-- d/dx(eˣ) = eˣ
-- d/dx(sin x) = cos x
-- d/dx(ln x) = 1/x
+Why it matters:
+- it gives plants energy
+- it releases oxygen into the atmosphere
+- it supports most food chains on Earth
 
-**Example:** f(x) = x² → f'(x) = 2x. At x=3, the slope is 6.`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Math",
-    tags: ["calculus", "derivatives", "mathematics"], upvotes: 312, views: 4900, user: "science@seed.echoai.dev",
-  },
-
-  // ── WRITING ───────────────────────────────────────────────────────
-  {
-    prompt: "Write a cover letter opening paragraph for a software engineer role at a startup",
-    answer: `I'm a software engineer with 4 years of experience building scalable web applications, and I'm genuinely excited about [Company]'s mission to [X]. What draws me to early-stage companies is the opportunity to wear multiple hats — I thrive when I can move fast, make architectural decisions, and see my code directly impact users. At my last role, I shipped [specific achievement], and I'd love to bring that same drive to your team.`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "Writing",
-    tags: ["cover-letter", "job-search", "startup"], upvotes: 156, views: 2890, user: "career@seed.echoai.dev",
+In short, photosynthesis is how plants make food from sunlight.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Science",
+    tags: ["plants", "biology", "photosynthesis", "basics"],
+    upvotes: 449,
+    views: 8500,
+    user: "science@seed.echoai.dev",
   },
   {
-    prompt: "What makes a great hook for a blog post?",
-    answer: `A great hook grabs readers in the first 2–3 sentences by doing one of these:
+    prompt: "What is the Pythagorean theorem?",
+    answer: `The Pythagorean theorem says that in a **right triangle**:
 
-1. **Bold claim:** "Most productivity advice is wrong — and it's making you worse."
-2. **Surprising statistic:** "93% of startups fail within 5 years. The 7% all share one habit."
-3. **Story/scene:** "At 2am on a Tuesday, our database was down and 10,000 users were locked out."
-4. **Question that creates tension:** "What if the way you're learning to code is wasting 80% of your time?"
-5. **Contrarian take:** "I deleted all my productivity apps. Here's why my output tripled."
+\`\`\`
+a^2 + b^2 = c^2
+\`\`\`
 
-**What to avoid:** Starting with background context, definitions, or "In this blog post I will...". Jump straight to the tension or insight. Readers decide in 5 seconds whether to keep reading.`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "Writing",
-    tags: ["writing", "blogging", "copywriting", "hooks"], upvotes: 201, views: 3400, user: "career@seed.echoai.dev",
+- **a** and **b** are the two shorter sides
+- **c** is the longest side, called the hypotenuse
+
+Example:
+If the two shorter sides are 3 and 4:
+
+\`\`\`
+3^2 + 4^2 = 9 + 16 = 25
+\`\`\`
+
+So:
+
+\`\`\`
+c = 5
+\`\`\`
+
+It is used to find missing distances in geometry, construction, maps, and computer graphics.
+
+Simple memory trick:
+square the short sides, add them, then take the square root to get the longest side.`,
+    model: "Claude 3.5",
+    modelColor: "#818cf8",
+    category: "Math",
+    tags: ["math", "geometry", "triangles", "basics"],
+    upvotes: 472,
+    views: 9100,
+    user: "science@seed.echoai.dev",
   },
   {
-    prompt: "How do I write an executive summary?",
-    answer: `An executive summary distills a longer document (report, business plan, proposal) into 1–2 pages. Executives should be able to make a decision after reading it alone.
+    prompt: "What is compound interest and how does it work?",
+    answer: `Compound interest means you earn interest not only on your original money, but also on the interest that has already been added.
 
-**Structure:**
-1. **The situation** (1–2 sentences): What problem or opportunity exists?
-2. **The recommendation** (1–2 sentences): What do you propose?
-3. **Key findings** (3–5 bullet points): The evidence supporting your recommendation
-4. **Impact/ROI** (1 paragraph): What happens if you act? What's the cost of inaction?
-5. **Ask** (1 sentence): What do you need? Approval, budget, sign-off?
+That is why people call it **interest on interest**.
 
-**Golden rules:**
-- Write it last (after the full document), but place it first
-- No jargon — assume the reader hasn't read the full doc
-- Lead with the conclusion, not the background
-- Keep it under 10% of the full document length`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Writing",
-    tags: ["business-writing", "executive-summary", "communication"], upvotes: 134, views: 2100, user: "career@seed.echoai.dev",
+Example:
+If you invest $1,000 at 5% yearly interest:
+- after year 1: $1,050
+- after year 2: you earn interest on $1,050, not just $1,000
+
+Over time, the growth becomes faster because each period builds on the previous one.
+
+Basic formula:
+
+\`\`\`
+A = P(1 + r/n)^(nt)
+\`\`\`
+
+- **P** = starting amount
+- **r** = interest rate
+- **n** = number of times interest is added per year
+- **t** = number of years
+
+The most important idea:
+the earlier you start, the more powerful compounding becomes.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Math",
+    tags: ["compound-interest", "math", "finance", "basics"],
+    upvotes: 644,
+    views: 13500,
+    user: "finance@seed.echoai.dev",
   },
-
-  // ── MEDICAL ───────────────────────────────────────────────────────
   {
-    prompt: "How does the immune system recognize pathogens?",
-    answer: `The immune system uses a two-layer recognition system:
+    prompt: "How do I calculate a percentage?",
+    answer: `A percentage means **out of 100**.
 
-**1. Innate immunity (fast, non-specific):** Pattern Recognition Receptors (PRRs) — especially Toll-like receptors on immune cells — detect conserved molecular patterns called PAMPs (Pathogen-Associated Molecular Patterns) shared by many pathogens (e.g., bacterial cell wall components, viral RNA). This triggers immediate inflammation.
+Basic formula:
 
-**2. Adaptive immunity (slow, specific):** Antigens (unique surface proteins) from the pathogen are presented by dendritic cells to T and B lymphocytes via MHC molecules. B cells produce antibodies that bind specifically to those antigens. Memory cells are then retained for faster future responses — this is the basis of vaccines.`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "Medical",
-    tags: ["immune-system", "biology", "pathogens", "antibodies"], upvotes: 374, views: 6089, user: "med@seed.echoai.dev",
+\`\`\`
+percentage = (part / whole) x 100
+\`\`\`
+
+Example:
+If 25 students out of 40 passed:
+
+\`\`\`
+(25 / 40) x 100 = 62.5%
+\`\`\`
+
+Useful shortcuts:
+- **10%** = move the decimal one place left
+- **1%** = move it two places left
+- **50%** = half
+- **25%** = one quarter
+
+To find a percentage of a number:
+
+\`\`\`
+20% of 80 = 0.20 x 80 = 16
+\`\`\`
+
+So there are usually two common tasks:
+- finding what percent one number is of another
+- finding a percent of a single number`,
+    model: "Gemini 1.5",
+    modelColor: "#f59e0b",
+    category: "Math",
+    tags: ["percentages", "math", "calculation", "basics"],
+    upvotes: 423,
+    views: 7900,
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "What is copyright and how is it different from trademark?",
+    answer: `**Copyright** protects original creative work such as:
+- books
+- music
+- films
+- illustrations
+- software code
+
+**Trademark** protects brand identity such as:
+- brand names
+- logos
+- slogans
+
+Simple difference:
+- **copyright** protects the work itself
+- **trademark** protects what identifies the business or brand
+
+Example:
+- the text of a novel is protected by copyright
+- the name of a company and its logo can be protected by trademark
+
+They can sometimes apply to related things, but they are not the same type of protection.
+
+This is general information, not legal advice.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Legal",
+    tags: ["copyright", "trademark", "legal", "intellectual-property"],
+    upvotes: 405,
+    views: 7600,
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "What is an NDA?",
+    answer: `An **NDA** is a **Non-Disclosure Agreement**.
+
+It is a legal contract that says certain information must be kept confidential.
+
+People often sign NDAs when:
+- starting freelance work
+- discussing a business idea
+- joining a startup project
+- reviewing sensitive company information
+
+An NDA usually explains:
+- what information is confidential
+- who must protect it
+- how long confidentiality lasts
+- what happens if someone breaks the agreement
+
+Important point:
+an NDA does not mean "everything forever is secret."
+The exact wording matters, especially the scope and duration.
+
+This is general information, not legal advice.`,
+    model: "Claude 3.5",
+    modelColor: "#818cf8",
+    category: "Legal",
+    tags: ["nda", "contracts", "confidentiality", "legal"],
+    upvotes: 382,
+    views: 6900,
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "What should I do after a car accident?",
+    answer: `A calm, practical order is:
+
+1. **Check for injuries**
+2. **Call emergency services** if anyone may be hurt
+3. **Move to safety** if possible
+4. **Exchange information** with the other driver
+5. **Take photos** of damage, plates, and the scene
+6. **Get witness details** if there are witnesses
+7. **Contact your insurance company**
+
+Useful information to collect:
+- names
+- phone numbers
+- license plates
+- insurance details
+- location and time
+
+Do not admit fault at the scene.
+Just describe what happened factually.
+
+If you feel pain later, get medical attention because some injuries show up after the accident.`,
+    model: "Gemini 1.5",
+    modelColor: "#f59e0b",
+    category: "Legal",
+    tags: ["car-accident", "insurance", "practical-help", "safety"],
+    upvotes: 517,
+    views: 10100,
+    user: "legal@seed.echoai.dev",
   },
   {
     prompt: "What is the difference between a virus and a bacterium?",
-    answer: `**Bacteria** are single-celled living organisms with their own metabolism and ribosomes. They can reproduce independently. They're much larger (~1–10 micrometers) and can be killed with **antibiotics**.
+    answer: `A **bacterium** is a living single-celled organism.
+A **virus** is much smaller and cannot reproduce on its own. It needs to enter a host cell and use that cell's machinery.
 
-**Viruses** are not technically alive — they're packets of genetic material (DNA or RNA) wrapped in a protein coat. They can't reproduce on their own and must hijack a host cell's machinery. They're much smaller (~20–300 nanometers). Antibiotics don't work on viruses; **antiviral drugs** or vaccines are used.
-
-**Key difference in treatment:** Taking antibiotics for a viral infection (like the flu or a cold) doesn't work and contributes to antibiotic resistance. Only use antibiotics for bacterial infections.
+Key differences:
+- bacteria are living cells
+- viruses are not considered living in the same way
+- antibiotics can work against some bacteria
+- antibiotics do **not** work against viruses
 
 Examples:
-- Bacterial: strep throat, UTIs, tuberculosis
-- Viral: flu, COVID-19, HIV, common cold`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Medical",
-    tags: ["microbiology", "virus", "bacteria", "infection"], upvotes: 289, views: 4700, user: "med@seed.echoai.dev",
-  },
+- bacterial infections: some throat infections, some UTIs
+- viral infections: flu, colds, COVID-19
 
-  // ── FINANCE ───────────────────────────────────────────────────────
-  {
-    prompt: "What is dollar-cost averaging (DCA) and should I use it?",
-    answer: `**Dollar-cost averaging (DCA)** means investing a fixed amount of money at regular intervals (e.g., $500/month into an index fund), regardless of price.
-
-**Why it works:**
-- When prices are low, your fixed amount buys more shares
-- When prices are high, you buy fewer shares
-- Over time, your average cost per share is lower than the average price
-
-**Example:**
-Month 1: price $100 → buy 5 shares
-Month 2: price $50 → buy 10 shares
-Month 3: price $200 → buy 2.5 shares
-Average price: $116.67 | Average cost: $100
-
-**Should you use it?** Yes, if:
-- You're investing regularly from a salary (this is just what most 401k contributions do automatically)
-- You're anxious about timing the market
-- You don't have a large lump sum to invest
-
-If you DO have a lump sum, research shows lump-sum investing beats DCA ~67% of the time. But DCA reduces regret and is psychologically easier.`,
-    model: "Claude 3.5", modelColor: "#818cf8", category: "Finance",
-    tags: ["investing", "dca", "stocks", "personal-finance"], upvotes: 347, views: 6200, user: "finance@seed.echoai.dev",
+This is why doctors do not prescribe antibiotics for every illness.
+The right treatment depends on what is causing the infection.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Medical",
+    tags: ["virus", "bacteria", "infection", "health"],
+    upvotes: 493,
+    views: 9200,
+    user: "med@seed.echoai.dev",
   },
   {
-    prompt: "What is the difference between a Roth IRA and a Traditional IRA?",
-    answer: `Both are individual retirement accounts with tax advantages, but the timing of the tax break differs:
+    prompt: "How can I improve my sleep?",
+    answer: `The most effective sleep habits are usually simple and consistent:
 
-**Traditional IRA:**
-- Contributions may be **tax-deductible** (reduces taxable income now)
-- Growth is tax-deferred
-- Withdrawals in retirement are taxed as ordinary income
-- Required minimum distributions (RMDs) start at age 73
+- go to bed at the same time every day
+- wake up at the same time every day
+- reduce screens and bright light before bed
+- avoid caffeine late in the day
+- keep the room cool, dark, and quiet
+- avoid heavy meals right before sleeping
 
-**Roth IRA:**
-- Contributions are **after-tax** (no deduction now)
-- Growth is tax-free
-- Qualified withdrawals in retirement are **completely tax-free**
-- No RMDs during your lifetime
+Also helpful:
+- get sunlight in the morning
+- move your body during the day
+- use your bed mainly for sleep, not work
 
-**Which to choose?**
-- Young / lower income now → Roth (pay low taxes now, withdraw tax-free later)
-- Peak earning years / high income now → Traditional (deduct now, pay taxes in retirement when income is lower)
-- Both have the same 2024 contribution limit: $7,000/year ($8,000 if 50+)
+If your mind races at night, try writing tomorrow's tasks down before bed so they are not bouncing around in your head.
 
-Many advisors recommend having both.`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Finance",
-    tags: ["ira", "retirement", "investing", "taxes"], upvotes: 412, views: 7800, user: "finance@seed.echoai.dev",
+If sleep problems continue for a long time or affect daily life, it is worth talking to a healthcare professional.`,
+    model: "Claude 3.7",
+    modelColor: "#818cf8",
+    category: "Medical",
+    tags: ["sleep", "health", "wellness", "habits"],
+    upvotes: 624,
+    views: 13200,
+    user: "med@seed.echoai.dev",
   },
+  {
+    prompt: "What is anxiety?",
+    answer: `Anxiety is your mind and body reacting to a sense of threat, pressure, or uncertainty.
 
-  // ── HISTORY ───────────────────────────────────────────────────────
+It can show up as:
+- worry
+- racing thoughts
+- tension
+- fast heartbeat
+- trouble sleeping
+- feeling on edge
+
+Some anxiety is normal. It becomes a problem when it is frequent, overwhelming, or starts interfering with work, relationships, or daily life.
+
+Helpful first steps can include:
+- slow breathing
+- better sleep routines
+- reducing caffeine
+- talking to someone you trust
+- therapy or professional support
+
+If anxiety feels severe or persistent, it is a good idea to speak with a healthcare professional.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Medical",
+    tags: ["anxiety", "mental-health", "wellbeing", "stress"],
+    upvotes: 458,
+    views: 8700,
+    user: "med@seed.echoai.dev",
+  },
   {
     prompt: "What caused World War 1?",
-    answer: `WWI (1914–1918) was caused by a combination of long-term tensions and a short-term trigger.
+    answer: `World War 1 was caused by a mix of long-term tensions and one immediate trigger.
 
-**Long-term causes (MAIN):**
-- **Militarism** — European powers built up massive armies and navies, creating an arms race
-- **Alliance system** — Europe split into two armed camps: Triple Alliance (Germany, Austria-Hungary, Italy) vs Triple Entente (France, Russia, Britain)
-- **Imperialism** — competition for colonies created tensions, especially between Germany and established powers
-- **Nationalism** — ethnic minorities wanted independence; pan-Slavic movement threatened Austria-Hungary
+Major long-term causes:
+- military build-up
+- alliance systems between countries
+- imperial rivalry
+- nationalism
 
-**Immediate trigger:**
-On June 28, 1914, Archduke Franz Ferdinand of Austria-Hungary was assassinated in Sarajevo by Gavrilo Princip (a Bosnian Serb nationalist). Austria-Hungary issued an ultimatum to Serbia. Serbia's partial compliance wasn't enough. The alliance system then dragged in every major European power within weeks.`,
-    model: "Gemini 1.5", modelColor: "#f59e0b", category: "History",
-    tags: ["world-war-1", "history", "europe"], upvotes: 298, views: 5200, user: "history@seed.echoai.dev",
+Immediate trigger:
+the assassination of Archduke Franz Ferdinand of Austria-Hungary in 1914.
+
+That event set off a chain reaction:
+- Austria-Hungary moved against Serbia
+- alliances pulled in more countries
+- the conflict expanded into a world war
+
+So the assassination started the crisis, but Europe was already highly unstable and prepared for conflict.`,
+    model: "Gemini 1.5",
+    modelColor: "#f59e0b",
+    category: "History",
+    tags: ["world-war-1", "history", "europe", "war"],
+    upvotes: 441,
+    views: 8300,
+    user: "history@seed.echoai.dev",
   },
   {
-    prompt: "Who were the Stoics and what did they believe?",
-    answer: `Stoicism was a school of philosophy founded in Athens around 300 BC by Zeno of Citium. Key figures: Epictetus, Marcus Aurelius, Seneca.
+    prompt: "Who were the Stoics?",
+    answer: `The Stoics were ancient philosophers who taught that a good life comes from focusing on what you can control and responding wisely to what you cannot.
 
-**Core beliefs:**
+Important Stoic thinkers include:
+- Zeno
+- Seneca
+- Epictetus
+- Marcus Aurelius
 
-1. **The dichotomy of control:** Some things are "up to us" (our thoughts, judgments, desires) and some are not (health, wealth, others' opinions). Happiness comes from focusing only on what we control.
+Core Stoic ideas:
+- you cannot control everything
+- you can control your judgments and actions
+- virtue matters more than comfort or status
+- peace comes from discipline and perspective
 
-2. **Virtue is the only good:** External things (money, status, health) are "preferred indifferents" — nice to have but not necessary for a good life. Virtue (wisdom, justice, courage, temperance) is the only true good.
+A famous Stoic idea is the **dichotomy of control**:
+some things are up to you, and some are not.
 
-3. **Live according to nature:** Humans are rational beings; living rationally and virtuously is living according to our nature.
-
-4. **Emotions come from judgments:** Negative emotions arise from false beliefs. "Men are disturbed not by things, but by their opinions about things." — Epictetus
-
-**Still relevant today:** CBT (cognitive behavioral therapy) is heavily influenced by Stoicism.`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "History",
-    tags: ["philosophy", "stoicism", "ancient-greece", "marcus-aurelius"], upvotes: 445, views: 7600, user: "history@seed.echoai.dev",
-  },
-
-  // ── LEGAL ─────────────────────────────────────────────────────────
-  {
-    prompt: "What is the difference between copyright and trademark?",
-    answer: `**Copyright** protects original creative works (books, music, code, art, films). It's automatic — you own it the moment you create it. It lasts for the creator's life + 70 years. Copyright protects the specific expression of an idea, not the idea itself.
-
-**Trademark** protects brand identifiers (names, logos, slogans) that distinguish goods/services in commerce. It must be registered (or used in commerce) and actively enforced. Trademarks can last indefinitely as long as they're in use and renewed.
-
-**Key differences:**
-- Copyright = what you create; Trademark = what identifies your brand
-- Copyright is automatic; Trademark requires registration (for full protection)
-- Copyright has a time limit; Trademark can last forever
-- Copyright: no one can copy your novel; Trademark: no one can use a confusingly similar logo
-
-**Example:** The specific text of Harry Potter is copyrighted. The "Harry Potter" name/logo used on merchandise is trademarked.
-
-*Note: This is general information, not legal advice. Consult a lawyer for your specific situation.*`,
-    model: "GPT-4o", modelColor: "#10b981", category: "Legal",
-    tags: ["ip-law", "copyright", "trademark", "legal"], upvotes: 267, views: 4300, user: "legal@seed.echoai.dev",
+That is one reason Stoicism still feels modern today.`,
+    model: "Claude 3.7",
+    modelColor: "#818cf8",
+    category: "History",
+    tags: ["stoicism", "philosophy", "history", "marcus-aurelius"],
+    upvotes: 392,
+    views: 7100,
+    user: "history@seed.echoai.dev",
   },
   {
-    prompt: "What is an NDA and when should I sign one?",
-    answer: `An **NDA (Non-Disclosure Agreement)** is a legal contract where one or both parties agree to keep certain information confidential.
+    prompt: "What was the Renaissance?",
+    answer: `The Renaissance was a period of major cultural, artistic, and intellectual growth in Europe, roughly from the 14th to the 17th century.
 
-**Types:**
-- **Unilateral** — one party shares confidential info; only the recipient is bound
-- **Mutual/Bilateral** — both parties share info; both are bound
+The word means **rebirth** because it involved renewed interest in the ideas of ancient Greece and Rome.
 
-**When you'll encounter them:**
-- Job interviews (especially at startups, discussing product ideas)
-- Freelance/contractor work
-- Business partnerships or M&A discussions
-- Investor pitches
+The Renaissance is known for:
+- advances in art
+- new scientific thinking
+- humanism
+- exploration
+- major changes in education and culture
 
-**Key terms to check before signing:**
-1. **Scope** — what exactly is "confidential"? Overly broad definitions can be problematic
-2. **Duration** — how long does confidentiality last? 1–5 years is typical; "perpetual" is unusual
-3. **Exclusions** — info already public, independently developed, or received from third parties is usually excluded
-4. **Jurisdiction** — which state/country's laws apply?
-5. **Remedies** — what happens if you breach?
+Important figures include:
+- Leonardo da Vinci
+- Michelangelo
+- Raphael
 
-**When to be cautious:** NDAs that try to prevent you from discussing your own skills, or that are perpetual with no exceptions, are red flags.
-
-*Note: Always consult a lawyer before signing legal agreements.*`,
-    model: "Claude 3.5", modelColor: "#818cf8", category: "Legal",
-    tags: ["nda", "contracts", "legal", "business"], upvotes: 189, views: 3100, user: "legal@seed.echoai.dev",
-  },
-
-  // ── GENERAL ───────────────────────────────────────────────────────
-  {
-    prompt: "What is the Feynman Technique for learning?",
-    answer: `The **Feynman Technique** is a learning method developed by Nobel Prize-winning physicist Richard Feynman. It forces deep understanding by requiring you to explain concepts simply.
-
-**4 steps:**
-
-1. **Choose a concept** you want to understand
-2. **Explain it as if teaching a child** — use simple words, no jargon. Write it out.
-3. **Identify gaps** — where did you get stuck or use jargon? Those are the gaps in your understanding. Go back and study those parts.
-4. **Simplify and use analogies** — once you understand it fully, simplify your explanation further. Use stories and analogies.
-
-**Why it works:** The act of explaining reveals what you don't actually understand (vs what you just recognize). If you can't explain it simply, you don't understand it deeply.
-
-Feynman's rule: "If you can't explain it simply, you don't understand it well enough."`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "General",
-    tags: ["learning", "feynman", "study", "education"], upvotes: 512, views: 9100, user: "career@seed.echoai.dev",
+In simple terms, the Renaissance helped move Europe from the medieval world toward the modern one.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "History",
+    tags: ["renaissance", "history", "europe", "art"],
+    upvotes: 365,
+    views: 6400,
+    user: "history@seed.echoai.dev",
   },
   {
-    prompt: "How does sleep affect memory and learning?",
-    answer: `Sleep plays a critical role in **memory consolidation** — the process of moving information from short-term to long-term memory.
+    prompt: "What is inflation?",
+    answer: `Inflation means prices rise over time, so the same amount of money buys less than before.
 
-**During sleep:**
-- **Slow-wave (deep) sleep:** The hippocampus replays recent experiences and transfers them to the neocortex for long-term storage. This is crucial for declarative memory (facts, events).
-- **REM sleep:** Associated with procedural memory (skills, habits) and emotional memory processing. This is when most dreaming occurs.
-- **Memory reactivation:** The brain literally replays neural patterns from the day, strengthening those connections.
+Example:
+If something cost $10 last year and $10.50 this year, that is inflation.
 
-**Practical implications:**
-- Studying before sleep is more effective than studying and staying up late
-- Sleep deprivation impairs the formation of new memories and retrieval of existing ones
-- A 20-minute nap after learning can improve retention by up to 20%
-- Pulling all-nighters for exams is counterproductive — you retain less and your recall under stress is worse
+Why inflation happens:
+- demand grows faster than supply
+- production costs rise
+- wages rise
+- too much money circulates relative to available goods
 
-Getting 7–9 hours significantly outperforms any supplement or memory hack.`,
-    model: "GPT-4o", modelColor: "#10b981", category: "General",
-    tags: ["sleep", "memory", "neuroscience", "learning"], upvotes: 423, views: 7400, user: "science@seed.echoai.dev",
+Why it matters:
+- your everyday expenses can go up
+- savings lose purchasing power if they do not grow
+- borrowing and interest rates are affected
+
+A little inflation is normal in most economies.
+The problem is when inflation becomes too high or too persistent.`,
+    model: "Claude 3.5",
+    modelColor: "#818cf8",
+    category: "Finance",
+    tags: ["inflation", "economics", "money", "personal-finance"],
+    upvotes: 554,
+    views: 10800,
+    user: "finance@seed.echoai.dev",
   },
   {
-    prompt: "What are the best practices for giving constructive feedback?",
-    answer: `Constructive feedback is specific, actionable, and delivered in a way the recipient can hear.
+    prompt: "How do I make a simple budget?",
+    answer: `A simple budget starts with knowing:
+- how much money comes in
+- how much money goes out
 
-**The SBI model (Situation–Behavior–Impact):**
-1. **Situation:** When/where (be specific, not "always")
-2. **Behavior:** What you observed (not interpreted), e.g., "you interrupted three times"
-3. **Impact:** Effect on you/the team: "which made Sarah hesitate to continue"
+Basic steps:
+1. list your monthly income
+2. list fixed costs like rent, bills, insurance
+3. list variable costs like food, transport, fun
+4. compare total spending to income
+5. decide how much to save
 
-**Do:**
-- Give feedback promptly (within 24–48 hours of the event)
-- Start with curiosity: "I noticed X — can you help me understand what happened?"
-- Focus on the behavior, not the person
-- Be specific: "the report lacked projected revenue" beats "the report needs work"
-- End with what success looks like: "next time, I'd love to see..."
+A common starting rule is **50/30/20**:
+- 50% needs
+- 30% wants
+- 20% savings or debt repayment
 
-**Don't:**
-- Sandwich feedback between compliments (the "compliment sandwich") — people hear the praise and ignore the criticism
-- Use "always" and "never" — triggers defensiveness
-- Give feedback in public (for critical feedback)
-- Pile on multiple issues in one session
+You do not need a perfect spreadsheet at first.
+Even a basic note or simple tracker is enough if you use it consistently.
 
-**The goal:** The person should leave knowing exactly what to do differently.`,
-    model: "Claude 3.7", modelColor: "#818cf8", category: "General",
-    tags: ["feedback", "management", "communication", "leadership"], upvotes: 334, views: 5600, user: "career@seed.echoai.dev",
+The goal of a budget is not restriction.
+It is clarity.`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "Finance",
+    tags: ["budgeting", "money", "personal-finance", "saving"],
+    upvotes: 607,
+    views: 12100,
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "What is dollar-cost averaging?",
+    answer: `Dollar-cost averaging means investing a fixed amount of money on a regular schedule, no matter what the price is.
+
+Example:
+you invest $200 every month into the same fund.
+
+What happens:
+- when prices are high, you buy fewer shares
+- when prices are low, you buy more shares
+
+Why people like it:
+- it reduces the pressure of trying to time the market
+- it creates a steady habit
+- it can make investing feel simpler and more disciplined
+
+It does not guarantee profit, but it is a common long-term strategy because it is easy to stick with.`,
+    model: "Claude 3.5",
+    modelColor: "#818cf8",
+    category: "Finance",
+    tags: ["investing", "dollar-cost-averaging", "stocks", "personal-finance"],
+    upvotes: 471,
+    views: 8600,
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "What is the Feynman Technique?",
+    answer: `The Feynman Technique is a way to learn by trying to explain something in very simple language.
+
+Basic process:
+1. choose a topic
+2. explain it as if teaching a beginner
+3. notice where you get stuck
+4. go back, study the weak spots, and simplify again
+
+Why it works:
+it reveals the difference between recognizing information and actually understanding it.
+
+A useful rule is:
+if you cannot explain it simply, you probably do not understand it deeply yet.
+
+It is especially useful for:
+- studying
+- preparing for interviews
+- learning complex topics
+- checking your own understanding`,
+    model: "Claude 3.7",
+    modelColor: "#818cf8",
+    category: "General",
+    tags: ["learning", "study", "feynman-technique", "education"],
+    upvotes: 529,
+    views: 10300,
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "How can I stop procrastinating?",
+    answer: `Procrastination usually gets easier when you make the task smaller and easier to start.
+
+Helpful methods:
+- start with just 5 minutes
+- break the task into tiny steps
+- remove distractions before you begin
+- decide the exact next action
+- use a timer, like 25 minutes of focus
+
+Example:
+Instead of "work on report," start with:
+- open the document
+- write the title
+- draft the first bullet
+
+The biggest mistake is waiting to feel motivated first.
+Action often creates motivation, not the other way around.
+
+So the real goal is not "do everything."
+It is "make starting easier."`,
+    model: "GPT-4o",
+    modelColor: "#10b981",
+    category: "General",
+    tags: ["procrastination", "productivity", "focus", "habits"],
+    upvotes: 648,
+    views: 13800,
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "How do I manage stress better?",
+    answer: `Stress management usually works best when you focus on basics before looking for complicated solutions.
+
+Good starting points:
+- sleep enough
+- move your body regularly
+- reduce overload where possible
+- take short breaks during intense work
+- talk to someone instead of carrying everything alone
+
+In the moment, it can help to:
+- slow your breathing
+- step away for a few minutes
+- write down what is worrying you
+- separate what you can control from what you cannot
+
+Stress is not always a sign of weakness.
+Sometimes it is a sign that your load is too high for too long.
+
+If it becomes constant or overwhelming, professional support can really help.`,
+    model: "Claude 3.7",
+    modelColor: "#818cf8",
+    category: "General",
+    tags: ["stress", "wellbeing", "mental-health", "self-help"],
+    upvotes: 503,
+    views: 9400,
+    user: "med@seed.echoai.dev",
   },
 ];
 
-async function main() {
-  console.log("🌱 Seeding database...");
+type SimpleGpt55Topic = Pick<SeedAnswer, "prompt" | "answer" | "category" | "tags" | "user">;
 
-  // Create seed users
+const GPT55_MODEL = "GPT-5.5";
+const GPT55_COLOR = "#10b981";
+
+const SIMPLE_GPT55_TOPICS: SimpleGpt55Topic[] = [
+  {
+    prompt: "Quel est l'arbre qui vit le plus longtemps ?",
+    answer: "L'arbre connu pour vivre le plus longtemps est souvent le pin de Bristlecone, un pin des montagnes de l'ouest des Etats-Unis. Certains individus ont plus de 4 800 ans. Il existe aussi des colonies clonales encore plus anciennes, mais pour un arbre individuel, le pin de Bristlecone est l'exemple le plus cite.",
+    category: "Science",
+    tags: ["nature", "arbres", "records", "science"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Quel est l'animal le plus rapide du monde ?",
+    answer: "L'animal le plus rapide est le faucon pelerin en piqué. Il peut depasser 300 km/h lorsqu'il plonge pour chasser. Sur terre, l'animal le plus rapide est le guepard, qui peut atteindre environ 100 km/h sur une courte distance.",
+    category: "Science",
+    tags: ["animaux", "records", "nature"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi la mer est-elle salee ?",
+    answer: "La mer est salee parce que l'eau de pluie dissout des mineraux dans les roches, puis les rivieres transportent ces sels vers les oceans. L'eau s'evapore, mais les sels restent. Avec le temps, ils s'accumulent, ce qui rend l'eau de mer salee.",
+    category: "Science",
+    tags: ["mer", "ocean", "science", "nature"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi le ciel est bleu ?",
+    answer: "Le ciel est bleu parce que l'atmosphere diffuse davantage la lumiere bleue que les autres couleurs visibles. Ce phenomene s'appelle la diffusion de Rayleigh. La lumiere bleue se disperse dans toutes les directions, donc le ciel nous parait bleu.",
+    category: "Science",
+    tags: ["ciel", "lumiere", "physique"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les feuilles changent de couleur en automne ?",
+    answer: "Les feuilles changent de couleur parce que les arbres produisent moins de chlorophylle quand les jours raccourcissent. Le vert disparait peu a peu, laissant apparaitre d'autres pigments comme le jaune, l'orange et parfois le rouge.",
+    category: "Science",
+    tags: ["arbres", "automne", "nature"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Quelle est la planete la plus proche du Soleil ?",
+    answer: "La planete la plus proche du Soleil est Mercure. Elle est petite, rocheuse et tourne tres vite autour du Soleil. Une annee sur Mercure dure seulement 88 jours terrestres.",
+    category: "Science",
+    tags: ["espace", "planetes", "astronomie"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Combien de planetes y a-t-il dans le systeme solaire ?",
+    answer: "Il y a 8 planetes dans le systeme solaire : Mercure, Venus, la Terre, Mars, Jupiter, Saturne, Uranus et Neptune. Pluton est aujourd'hui classee comme planete naine.",
+    category: "Science",
+    tags: ["espace", "planetes", "astronomie"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi la Lune brille la nuit ?",
+    answer: "La Lune ne produit pas sa propre lumiere. Elle brille parce qu'elle reflete la lumiere du Soleil. Selon sa position par rapport a la Terre et au Soleil, on voit differentes phases de la Lune.",
+    category: "Science",
+    tags: ["lune", "espace", "astronomie"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les chats ronronnent ?",
+    answer: "Les chats ronronnent souvent quand ils sont detendus ou contents, mais aussi parfois quand ils sont stresses, blesses ou malades. Le ronronnement peut servir a communiquer et a s'apaiser.",
+    category: "Science",
+    tags: ["chats", "animaux", "comportement"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les chiens remuent la queue ?",
+    answer: "Les chiens remuent la queue pour communiquer une emotion. Cela peut indiquer la joie, l'excitation, la curiosite ou parfois le stress. Il faut aussi regarder le reste du corps pour comprendre le message.",
+    category: "Science",
+    tags: ["chiens", "animaux", "comportement"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Quel est le plus grand animal du monde ?",
+    answer: "Le plus grand animal du monde est la baleine bleue. Elle peut mesurer plus de 25 metres et peser plus de 100 tonnes. C'est aussi l'un des plus grands animaux ayant jamais existe.",
+    category: "Science",
+    tags: ["animaux", "baleine", "records"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Quel est l'ocean le plus grand du monde ?",
+    answer: "L'ocean le plus grand du monde est l'ocean Pacifique. Il couvre environ un tiers de la surface de la Terre et il est plus vaste que toutes les terres emergees reunies.",
+    category: "Science",
+    tags: ["ocean", "geographie", "terre"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les avions volent ?",
+    answer: "Les avions volent grace a la portance. Leurs ailes sont formees pour faire circuler l'air de maniere a creer une force vers le haut. Les moteurs donnent la vitesse necessaire pour maintenir cette portance.",
+    category: "Science",
+    tags: ["avions", "physique", "transport"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi le feu est chaud ?",
+    answer: "Le feu est chaud parce qu'il libere de l'energie pendant une reaction chimique appelee combustion. Cette energie se transforme en chaleur et en lumiere.",
+    category: "Science",
+    tags: ["feu", "chimie", "energie"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi la glace flotte sur l'eau ?",
+    answer: "La glace flotte parce qu'elle est moins dense que l'eau liquide. Quand l'eau gele, ses molecules s'organisent en structure plus espacee, ce qui augmente son volume et diminue sa densite.",
+    category: "Science",
+    tags: ["eau", "glace", "physique"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les saisons existent ?",
+    answer: "Les saisons existent parce que l'axe de la Terre est incline. Pendant l'annee, certaines regions recoivent plus ou moins de lumiere solaire directe, ce qui cree les saisons.",
+    category: "Science",
+    tags: ["saisons", "terre", "astronomie"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi il pleut ?",
+    answer: "Il pleut quand l'eau evaporee forme des nuages, puis se condense en gouttes trop lourdes pour rester en suspension dans l'air. Ces gouttes tombent alors sous forme de pluie.",
+    category: "Science",
+    tags: ["pluie", "meteo", "eau"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les arcs-en-ciel apparaissent ?",
+    answer: "Un arc-en-ciel apparait quand la lumiere du Soleil traverse des gouttes d'eau. La lumiere est reflechie et separee en differentes couleurs, comme dans un prisme.",
+    category: "Science",
+    tags: ["arc-en-ciel", "lumiere", "meteo"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les aimants attirent le metal ?",
+    answer: "Les aimants attirent certains metaux parce qu'ils produisent un champ magnetique. Les metaux comme le fer, le nickel et le cobalt reagissent fortement a ce champ.",
+    category: "Science",
+    tags: ["aimants", "magnetisme", "physique"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Quel est le metal le plus leger ?",
+    answer: "Le lithium est le metal le plus leger. Il est tres reactif et il est souvent utilise dans les batteries rechargeables.",
+    category: "Science",
+    tags: ["metaux", "chimie", "lithium"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Quelle est la difference entre une etoile et une planete ?",
+    answer: "Une etoile produit sa propre lumiere grace a des reactions nucleaires. Une planete ne produit pas sa propre lumiere : elle reflete la lumiere d'une etoile et tourne autour d'elle.",
+    category: "Science",
+    tags: ["etoiles", "planetes", "astronomie"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les dinosaures ont disparu ?",
+    answer: "La theorie la plus acceptee est qu'un enorme asteroide a frappe la Terre il y a environ 66 millions d'annees. L'impact a modifie le climat, rendant la survie tres difficile pour de nombreuses especes.",
+    category: "Science",
+    tags: ["dinosaures", "histoire", "science"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les abeilles sont importantes ?",
+    answer: "Les abeilles sont importantes parce qu'elles pollinisent de nombreuses plantes. En transportant le pollen, elles aident les fruits, les legumes et les fleurs a se reproduire.",
+    category: "Science",
+    tags: ["abeilles", "nature", "pollinisation"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les plantes ont besoin de soleil ?",
+    answer: "Les plantes ont besoin de soleil pour faire la photosynthese. Elles utilisent la lumiere pour transformer l'eau et le dioxyde de carbone en energie sous forme de sucre.",
+    category: "Science",
+    tags: ["plantes", "soleil", "photosynthese"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Quelle est la difference entre meteo et climat ?",
+    answer: "La meteo decrit le temps qu'il fait a court terme, comme aujourd'hui ou cette semaine. Le climat decrit les tendances moyennes sur une longue periode, souvent plusieurs decennies.",
+    category: "Science",
+    tags: ["meteo", "climat", "terre"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi faut-il boire de l'eau ?",
+    answer: "Il faut boire de l'eau parce que le corps en a besoin pour reguler la temperature, transporter les nutriments, aider la digestion et faire fonctionner les organes. Meme une legere deshydratation peut fatiguer.",
+    category: "Medical",
+    tags: ["eau", "sante", "hydratation"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Combien d'heures faut-il dormir ?",
+    answer: "La plupart des adultes ont besoin d'environ 7 a 9 heures de sommeil par nuit. Les besoins varient selon l'age, la sante et le rythme de vie.",
+    category: "Medical",
+    tags: ["sommeil", "sante", "bien-etre"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi le sommeil est important ?",
+    answer: "Le sommeil aide le corps a recuperer, soutient la memoire, l'humeur, le systeme immunitaire et la concentration. Un manque de sommeil regulier peut affecter la sante et les performances.",
+    category: "Medical",
+    tags: ["sommeil", "memoire", "sante"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi le sport est bon pour la sante ?",
+    answer: "Le sport aide le coeur, les muscles, le sommeil et l'humeur. Il peut aussi reduire le stress et soutenir la prevention de certaines maladies. Meme une activite moderee et reguliere peut aider.",
+    category: "Medical",
+    tags: ["sport", "sante", "bien-etre"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Quelle est la difference entre virus et bacterie ?",
+    answer: "Une bacterie est un organisme vivant unicellulaire. Un virus est beaucoup plus petit et doit entrer dans une cellule pour se reproduire. Les antibiotiques peuvent agir sur certaines bacteries, mais pas sur les virus.",
+    category: "Medical",
+    tags: ["virus", "bacterie", "sante"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi a-t-on de la fievre ?",
+    answer: "La fievre est une reaction du corps face a une infection ou une inflammation. Elle aide parfois le systeme immunitaire a mieux combattre certains microbes. Une fievre forte ou persistante doit etre surveillee.",
+    category: "Medical",
+    tags: ["fievre", "sante", "infection"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi le stress fatigue ?",
+    answer: "Le stress fatigue parce qu'il maintient le corps en etat d'alerte. Le coeur, le cerveau et les hormones travaillent davantage, ce qui peut epuiser l'energie avec le temps.",
+    category: "Medical",
+    tags: ["stress", "fatigue", "sante"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment mieux dormir naturellement ?",
+    answer: "Pour mieux dormir, il aide de garder des horaires reguliers, limiter les ecrans avant le coucher, eviter la cafeine tard, garder la chambre sombre et fraiche, et creer une routine calme.",
+    category: "Medical",
+    tags: ["sommeil", "habitudes", "bien-etre"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi les vitamines sont importantes ?",
+    answer: "Les vitamines aident le corps a fonctionner correctement. Elles soutiennent l'energie, l'immunite, la croissance, la peau, les os et de nombreux processus internes. Une alimentation variee aide souvent a couvrir les besoins.",
+    category: "Medical",
+    tags: ["vitamines", "nutrition", "sante"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi se laver les mains est important ?",
+    answer: "Se laver les mains reduit la transmission des microbes. C'est l'un des gestes les plus simples pour eviter certaines infections, surtout avant de manger et apres etre alle aux toilettes.",
+    category: "Medical",
+    tags: ["hygiene", "sante", "microbes"],
+    user: "med@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment faire un budget simple ?",
+    answer: "Pour faire un budget simple, note tes revenus, tes depenses fixes, tes depenses variables et ce que tu veux mettre de cote. Une methode facile est 50% besoins, 30% envies et 20% epargne ou dettes.",
+    category: "Finance",
+    tags: ["budget", "argent", "finance-personnelle"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce que l'inflation ?",
+    answer: "L'inflation signifie que les prix augmentent avec le temps. Quand il y a de l'inflation, la meme somme d'argent permet d'acheter moins de choses qu'avant.",
+    category: "Finance",
+    tags: ["inflation", "economie", "argent"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce que l'epargne ?",
+    answer: "L'epargne est l'argent que l'on met de cote au lieu de le depenser tout de suite. Elle peut servir aux urgences, aux projets futurs ou aux investissements.",
+    category: "Finance",
+    tags: ["epargne", "argent", "finance-personnelle"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Quelle est la difference entre salaire brut et salaire net ?",
+    answer: "Le salaire brut est le montant avant les cotisations et deductions. Le salaire net est ce que tu recois reellement sur ton compte apres ces deductions.",
+    category: "Finance",
+    tags: ["salaire", "travail", "argent"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un interet compose ?",
+    answer: "L'interet compose signifie que tu gagnes des interets sur ton capital initial, mais aussi sur les interets deja gagnes. C'est pour cela que l'argent peut croitre plus vite avec le temps.",
+    category: "Finance",
+    tags: ["interets", "epargne", "investissement"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'une action en bourse ?",
+    answer: "Une action est une petite part d'une entreprise. Quand tu possedes une action, tu possedes une fraction de cette entreprise. Sa valeur peut monter ou descendre selon les resultats et le marche.",
+    category: "Finance",
+    tags: ["bourse", "actions", "investissement"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un ETF ?",
+    answer: "Un ETF est un fonds cote en bourse qui regroupe plusieurs actifs, souvent des actions. Il permet d'investir dans un panier diversifie avec un seul produit.",
+    category: "Finance",
+    tags: ["etf", "bourse", "investissement"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi diversifier ses investissements ?",
+    answer: "Diversifier permet de ne pas mettre tout son argent au meme endroit. Si un investissement baisse, d'autres peuvent compenser. Cela reduit le risque global.",
+    category: "Finance",
+    tags: ["diversification", "investissement", "risque"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un credit ?",
+    answer: "Un credit est de l'argent emprunte que l'on doit rembourser plus tard, souvent avec des interets. Il peut servir a acheter une maison, une voiture ou financer un projet.",
+    category: "Finance",
+    tags: ["credit", "pret", "argent"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment economiser de l'argent facilement ?",
+    answer: "Pour economiser plus facilement, commence par suivre tes depenses, annuler les abonnements inutiles, comparer les prix et mettre une petite somme de cote automatiquement chaque mois.",
+    category: "Finance",
+    tags: ["economies", "argent", "budget"],
+    user: "finance@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment ecrire un email professionnel ?",
+    answer: "Un email professionnel doit etre clair, court et poli. Mets un objet precis, commence par une salutation, explique la demande simplement, puis termine avec une formule de politesse.",
+    category: "Writing",
+    tags: ["email", "travail", "communication"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment demander poliment une reponse ?",
+    answer: "Tu peux ecrire : Bonjour, je me permets de revenir vers vous concernant mon precedent message. Avez-vous eu l'occasion de le consulter ? Je reste disponible si besoin. Cordialement.",
+    category: "Writing",
+    tags: ["email", "relance", "politesse"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment dire non poliment ?",
+    answer: "Pour dire non poliment, remercie la personne, donne une reponse claire et propose une alternative si possible. Exemple : Merci pour la proposition, mais je ne pourrai pas accepter cette fois-ci.",
+    category: "Writing",
+    tags: ["communication", "politesse", "travail"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment commencer une lettre de motivation ?",
+    answer: "Commence par dire le poste vise, pourquoi il t'interesse et ce que tu peux apporter. Evite les phrases trop generiques et essaie de montrer un lien clair avec l'entreprise.",
+    category: "Writing",
+    tags: ["lettre-de-motivation", "emploi", "carriere"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment repondre a 'parlez-moi de vous' en entretien ?",
+    answer: "Reponds en trois parties : ta situation actuelle, ton parcours utile, puis pourquoi le poste t'interesse. Garde la reponse courte, environ une minute, et relie-la au poste.",
+    category: "Writing",
+    tags: ["entretien", "emploi", "carriere"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment faire un resume de texte ?",
+    answer: "Lis le texte, repere l'idee principale, note les points importants, puis reformule avec tes propres mots. Un bon resume garde l'essentiel sans copier chaque detail.",
+    category: "Writing",
+    tags: ["resume", "ecriture", "etudes"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment ameliorer son orthographe ?",
+    answer: "Pour ameliorer ton orthographe, lis regulierement, relis tes textes, note tes erreurs frequentes et utilise les correcteurs comme aide, pas comme remplacement de l'apprentissage.",
+    category: "Writing",
+    tags: ["orthographe", "ecriture", "francais"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment ecrire un message de remerciement ?",
+    answer: "Un bon message de remerciement est simple et sincere. Dis merci, precise ce que tu as apprecie, puis termine par une phrase courte et chaleureuse.",
+    category: "Writing",
+    tags: ["remerciement", "message", "communication"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment ecrire une introduction de dissertation ?",
+    answer: "Une introduction de dissertation contient souvent une accroche, une presentation du sujet, une problematique et l'annonce du plan. Elle doit guider le lecteur sans tout developper.",
+    category: "Writing",
+    tags: ["dissertation", "etudes", "ecriture"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment trouver un bon titre ?",
+    answer: "Un bon titre doit etre clair, precis et donner envie de lire. Il peut promettre un benefice, poser une question ou resumer l'idee centrale en peu de mots.",
+    category: "Writing",
+    tags: ["titre", "ecriture", "contenu"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment calculer un pourcentage ?",
+    answer: "Pour calculer un pourcentage, divise la partie par le total, puis multiplie par 100. Exemple : 25 sur 50 donne 25 / 50 x 100 = 50%.",
+    category: "Math",
+    tags: ["pourcentage", "calcul", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment calculer une moyenne ?",
+    answer: "Pour calculer une moyenne, additionne toutes les valeurs puis divise par le nombre de valeurs. Exemple : 10, 12 et 14 donnent 36 / 3 = 12.",
+    category: "Math",
+    tags: ["moyenne", "calcul", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'une fraction ?",
+    answer: "Une fraction represente une partie d'un tout. Par exemple, 1/2 signifie une partie sur deux, donc la moitie.",
+    category: "Math",
+    tags: ["fraction", "math", "bases"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un nombre premier ?",
+    answer: "Un nombre premier est un nombre entier superieur a 1 qui ne peut etre divise que par 1 et par lui-meme. Par exemple, 2, 3, 5, 7 et 11 sont premiers.",
+    category: "Math",
+    tags: ["nombre-premier", "math", "arithmetique"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment convertir des kilometres en metres ?",
+    answer: "Pour convertir des kilometres en metres, multiplie par 1 000. Par exemple, 3 kilometres = 3 000 metres.",
+    category: "Math",
+    tags: ["conversion", "metres", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment convertir des heures en minutes ?",
+    answer: "Pour convertir des heures en minutes, multiplie par 60. Par exemple, 2 heures = 120 minutes.",
+    category: "Math",
+    tags: ["conversion", "temps", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce que le theoreme de Pythagore ?",
+    answer: "Le theoreme de Pythagore dit que dans un triangle rectangle, le carre du plus grand cote est egal a la somme des carres des deux autres cotes : a2 + b2 = c2.",
+    category: "Math",
+    tags: ["pythagore", "geometrie", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment resoudre une equation simple ?",
+    answer: "Pour resoudre une equation simple, l'objectif est d'isoler l'inconnue. Fais la meme operation des deux cotes pour garder l'egalite vraie.",
+    category: "Math",
+    tags: ["equation", "algebre", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un angle droit ?",
+    answer: "Un angle droit mesure 90 degres. On le retrouve dans les coins d'un carre ou d'un rectangle.",
+    category: "Math",
+    tags: ["angle", "geometrie", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment calculer l'aire d'un rectangle ?",
+    answer: "Pour calculer l'aire d'un rectangle, multiplie la longueur par la largeur. Exemple : 5 x 3 = 15, donc l'aire est 15 unites carrees.",
+    category: "Math",
+    tags: ["aire", "rectangle", "math"],
+    user: "science@seed.echoai.dev",
+  },
+  {
+    prompt: "Qui etait Napoleon Bonaparte ?",
+    answer: "Napoleon Bonaparte etait un general puis empereur francais. Il a dirige la France au debut du XIXe siecle et a marque l'histoire europeenne par ses reformes et ses guerres.",
+    category: "History",
+    tags: ["napoleon", "france", "histoire"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi la Revolution francaise a commence ?",
+    answer: "La Revolution francaise a commence a cause de fortes inegalites, de problemes financiers, de la hausse des prix et d'une contestation du pouvoir absolu du roi.",
+    category: "History",
+    tags: ["revolution-francaise", "france", "histoire"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce que la Renaissance ?",
+    answer: "La Renaissance est une periode de renouveau artistique, scientifique et culturel en Europe. Elle commence vers le XIVe siecle et remet en valeur les savoirs de l'Antiquite.",
+    category: "History",
+    tags: ["renaissance", "europe", "histoire"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Qui a decouvert l'Amerique ?",
+    answer: "Christophe Colomb est souvent cite pour avoir atteint l'Amerique en 1492, du point de vue europeen. Mais le continent etait deja habite depuis des milliers d'annees par des peuples autochtones.",
+    category: "History",
+    tags: ["amerique", "colomb", "histoire"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi la Premiere Guerre mondiale a commence ?",
+    answer: "La Premiere Guerre mondiale a commence apres l'assassinat de l'archiduc Francois-Ferdinand en 1914, mais les causes profondes etaient les alliances, le nationalisme, les rivalites imperiales et la militarisation.",
+    category: "History",
+    tags: ["premiere-guerre-mondiale", "histoire", "europe"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Pourquoi la Seconde Guerre mondiale a commence ?",
+    answer: "La Seconde Guerre mondiale a commence en 1939 apres l'invasion de la Pologne par l'Allemagne nazie. Les tensions venaient aussi du traite de Versailles, de la crise economique et de la montee des regimes totalitaires.",
+    category: "History",
+    tags: ["seconde-guerre-mondiale", "histoire", "europe"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Qui etait Jules Cesar ?",
+    answer: "Jules Cesar etait un general et homme politique romain. Il a joue un role majeur dans la fin de la Republique romaine et a ete assassine en 44 av. J.-C.",
+    category: "History",
+    tags: ["rome", "cesar", "histoire"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce que l'Egypte ancienne ?",
+    answer: "L'Egypte ancienne etait une grande civilisation nee autour du Nil. Elle est connue pour ses pharaons, ses pyramides, ses temples, son ecriture hieroglyphique et ses avancees en architecture.",
+    category: "History",
+    tags: ["egypte", "antiquite", "histoire"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Qui etaient les Vikings ?",
+    answer: "Les Vikings etaient des peuples scandinaves actifs surtout entre le VIIIe et le XIe siecle. Ils etaient navigateurs, commercants, explorateurs et parfois guerriers.",
+    category: "History",
+    tags: ["vikings", "scandinavie", "histoire"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce que la guerre froide ?",
+    answer: "La guerre froide etait une periode de tension entre les Etats-Unis et l'Union sovietique apres la Seconde Guerre mondiale. Elle s'appelait froide car les deux puissances ne se sont pas affrontees directement dans une guerre totale.",
+    category: "History",
+    tags: ["guerre-froide", "histoire", "politique"],
+    user: "history@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un contrat ?",
+    answer: "Un contrat est un accord entre deux ou plusieurs parties qui cree des obligations. Il peut etre ecrit ou parfois oral, mais un document ecrit est souvent plus clair en cas de conflit.",
+    category: "Legal",
+    tags: ["contrat", "droit", "accord"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'une facture ?",
+    answer: "Une facture est un document qui detaille une vente ou un service : ce qui a ete fourni, le prix, les taxes eventuelles, la date et les informations du vendeur et du client.",
+    category: "Legal",
+    tags: ["facture", "administratif", "business"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'une assurance ?",
+    answer: "Une assurance est un contrat qui protege contre certains risques. En echange d'une cotisation, l'assureur peut indemniser en cas de probleme couvert par le contrat.",
+    category: "Legal",
+    tags: ["assurance", "contrat", "administratif"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Quelle est la difference entre copyright et marque ?",
+    answer: "Le copyright protege une oeuvre creative, comme un texte, une musique ou une image. Une marque protege un signe commercial, comme un nom, un logo ou un slogan.",
+    category: "Legal",
+    tags: ["copyright", "marque", "propriete-intellectuelle"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'une mise en demeure ?",
+    answer: "Une mise en demeure est une lettre officielle demandant a quelqu'un d'executer une obligation, comme payer une somme ou respecter un contrat, avant d'envisager d'autres actions.",
+    category: "Legal",
+    tags: ["mise-en-demeure", "droit", "administratif"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un bail ?",
+    answer: "Un bail est un contrat de location entre un proprietaire et un locataire. Il precise le logement, le loyer, la duree, les obligations et les conditions de location.",
+    category: "Legal",
+    tags: ["bail", "logement", "contrat"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'une procuration ?",
+    answer: "Une procuration est un document qui autorise une personne a agir a la place d'une autre pour une demarche precise, comme voter, signer ou recuperer un document.",
+    category: "Legal",
+    tags: ["procuration", "administratif", "droit"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un devis ?",
+    answer: "Un devis est une proposition de prix pour un service ou un produit. Il detaille ce qui sera fourni et le montant estime. Une fois accepte, il peut engager les parties.",
+    category: "Legal",
+    tags: ["devis", "business", "administratif"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Qu'est-ce qu'un NDA ?",
+    answer: "Un NDA, ou accord de confidentialite, est un contrat qui oblige une ou plusieurs personnes a garder certaines informations secretes.",
+    category: "Legal",
+    tags: ["nda", "confidentialite", "contrat"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Que faire apres un accident de voiture ?",
+    answer: "Apres un accident, verifie d'abord la securite et les blessures, appelle les secours si necessaire, prends des photos, echange les informations avec l'autre conducteur et contacte ton assurance.",
+    category: "Legal",
+    tags: ["accident", "assurance", "voiture"],
+    user: "legal@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment arreter de procrastiner ?",
+    answer: "Pour arreter de procrastiner, reduis la tache a une premiere action tres simple. Par exemple, au lieu de 'faire le dossier', commence par ouvrir le document. Le plus dur est souvent de commencer.",
+    category: "General",
+    tags: ["procrastination", "productivite", "habitudes"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment mieux gerer son temps ?",
+    answer: "Pour mieux gerer ton temps, note tes priorites, bloque des moments pour les taches importantes et limite les distractions. Une liste courte de 3 priorites par jour est souvent plus efficace qu'une longue liste.",
+    category: "General",
+    tags: ["temps", "organisation", "productivite"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment apprendre plus vite ?",
+    answer: "Pour apprendre plus vite, alterne lecture, pratique et rappel actif. Essaie d'expliquer ce que tu apprends avec tes propres mots. Ce qui est pratique et repete reste mieux en memoire.",
+    category: "General",
+    tags: ["apprentissage", "memoire", "etudes"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment rester motive ?",
+    answer: "La motivation devient plus stable quand tu relies ton objectif a une raison claire, que tu avances par petites etapes et que tu mesures tes progres. Les habitudes comptent plus que l'inspiration du moment.",
+    category: "General",
+    tags: ["motivation", "habitudes", "objectifs"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment prendre une bonne decision ?",
+    answer: "Pour prendre une bonne decision, clarifie le probleme, liste les options, compare les avantages et les risques, puis choisis avec les informations disponibles. Attendre la certitude parfaite peut bloquer l'action.",
+    category: "General",
+    tags: ["decision", "reflexion", "organisation"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment faire une to-do list efficace ?",
+    answer: "Une to-do list efficace contient des actions claires, pas des idees vagues. Ecris par exemple 'appeler le client' plutot que 'projet client'. Garde la liste courte pour rester realiste.",
+    category: "General",
+    tags: ["organisation", "todo", "productivite"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment ameliorer sa concentration ?",
+    answer: "Pour ameliorer ta concentration, travaille par blocs courts, range les distractions, coupe les notifications et fais des pauses regulieres. Un environnement simple aide beaucoup.",
+    category: "General",
+    tags: ["concentration", "focus", "productivite"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment se presenter simplement ?",
+    answer: "Pour te presenter simplement, dis ton nom, ce que tu fais, ton experience principale et ce que tu recherches ou proposes. Le plus important est d'etre clair et naturel.",
+    category: "General",
+    tags: ["presentation", "communication", "travail"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment se faire des amis ?",
+    answer: "Pour se faire des amis, il faut creer des occasions regulieres de voir les memes personnes, poser des questions sinceres, proposer des activites simples et laisser la relation se construire avec le temps.",
+    category: "General",
+    tags: ["amis", "relations", "vie-quotidienne"],
+    user: "career@seed.echoai.dev",
+  },
+  {
+    prompt: "Comment gerer une dispute calmement ?",
+    answer: "Pour gerer une dispute calmement, parle plus lentement, ecoute avant de repondre, decris les faits plutot que d'attaquer la personne et cherche un point concret a resoudre.",
+    category: "General",
+    tags: ["conflit", "communication", "relations"],
+    user: "career@seed.echoai.dev",
+  },
+];
+
+function lowercaseFirst(value: string) {
+  return value.charAt(0).toLowerCase() + value.slice(1);
+}
+
+function withoutQuestionMark(value: string) {
+  return value.replace(/\?$/, "");
+}
+
+const SIMPLE_GPT55_QA_PAIRS: SeedAnswer[] = SIMPLE_GPT55_TOPICS.flatMap((topic, index) => {
+  const prompts = [
+    topic.prompt,
+    `Explique simplement : ${lowercaseFirst(withoutQuestionMark(topic.prompt))}`,
+    `Reponse courte : ${lowercaseFirst(withoutQuestionMark(topic.prompt))}`,
+  ];
+
+  return prompts.map((prompt, variantIndex) => ({
+    ...topic,
+    prompt,
+    model: GPT55_MODEL,
+    modelColor: GPT55_COLOR,
+    upvotes: 120 + ((index * 17 + variantIndex * 11) % 520),
+    views: 1800 + ((index * 431 + variantIndex * 269) % 12000),
+  }));
+});
+
+const ENGLISH_GPT55_QA_PAIRS: SeedAnswer[] = GPT55_SIMPLE_ANSWERS.map((topic, index) => ({
+  ...topic,
+  model: GPT55_MODEL,
+  modelColor: GPT55_COLOR,
+  upvotes: 160 + ((index * 19) % 420),
+  views: 2400 + ((index * 457) % 11000),
+}));
+
+async function main() {
+  console.log("🌱 Adding English GPT-5.5 answers...");
+
   const pw = await bcrypt.hash("seedpassword123", 12);
   const userMap: Record<string, string> = {};
 
@@ -561,11 +1558,26 @@ async function main() {
     });
     userMap[u.email] = user.id;
   }
-  console.log(`✅ Created ${SEED_USERS.length} seed users`);
+  console.log(`✅ Ready with ${SEED_USERS.length} seed users`);
+  console.log(`ℹ️ Keeping existing answers untouched; legacy templates available: ${QA_PAIRS.length}`);
+  console.log(`ℹ️ Disabled old generated variants: ${SIMPLE_GPT55_QA_PAIRS.length}`);
 
-  // Create answers
   let created = 0;
-  for (const qa of QA_PAIRS) {
+  let skipped = 0;
+  for (const qa of ENGLISH_GPT55_QA_PAIRS) {
+    const existing = await prisma.answer.findFirst({
+      where: {
+        prompt: qa.prompt,
+        model: qa.model,
+      },
+      select: { id: true },
+    });
+
+    if (existing) {
+      skipped++;
+      continue;
+    }
+
     await prisma.answer.create({
       data: {
         prompt: qa.prompt,
@@ -581,10 +1593,15 @@ async function main() {
     });
     created++;
   }
-  console.log(`✅ Created ${created} Q&A pairs`);
-  console.log("🎉 Seeding complete!");
+
+  console.log(`✅ Created ${created} English GPT-5.5 answers`);
+  console.log(`↪️ Skipped ${skipped} answers already present`);
+  console.log("🎉 Additive seed complete");
 }
 
 main()
-  .catch((e) => { console.error(e); process.exit(1); })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
   .finally(() => prisma.$disconnect());

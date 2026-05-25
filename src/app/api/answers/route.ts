@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { normalizeQuery } from "@/lib/normalizeQuery";
 import { searchAnswers } from "@/lib/search";
 
 export async function GET(req: NextRequest) {
@@ -13,6 +14,37 @@ export async function GET(req: NextRequest) {
     const sort = searchParams.get("sort") ?? "upvotes";
 
     const answers = await searchAnswers(q, category, model, sort);
+    const normalizedQuery = normalizeQuery(q);
+
+    if (normalizedQuery && q.trim().length >= 4) {
+      const session = await getServerSession(authOptions).catch(() => null);
+      if (session?.user?.id) {
+        await prisma.searchHistory.upsert({
+          where: {
+            userId_normalizedQuery: {
+              userId: session.user.id,
+              normalizedQuery,
+            },
+          },
+          update: {
+            query: q.trim(),
+            category: category || null,
+            model: model || null,
+            resultCount: answers.length,
+          },
+          create: {
+            userId: session.user.id,
+            query: q.trim(),
+            normalizedQuery,
+            category: category || null,
+            model: model || null,
+            resultCount: answers.length,
+          },
+        })
+          .catch(() => null);
+      }
+    }
+
     return NextResponse.json(answers);
   } catch {
     return NextResponse.json([], { status: 200 });
@@ -49,6 +81,15 @@ export async function POST(req: NextRequest) {
       },
       include: { user: { select: { name: true } } },
     });
+
+    try {
+      await prisma.answerRequest.updateMany({
+        where: { normalizedQuery: normalizeQuery(prompt), status: "open" },
+        data: { status: "answered" },
+      });
+    } catch {
+      // The request table may not exist yet in local environments where the DB migration has not run.
+    }
 
     return NextResponse.json(created, { status: 201 });
   } catch {
