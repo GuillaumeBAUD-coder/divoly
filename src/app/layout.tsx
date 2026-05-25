@@ -7,7 +7,7 @@ import { PageViewTracker } from "@/components/PageViewTracker";
 export const metadata: Metadata = {
   title: "Divoly | Search AI Answers, Not AI",
   description: "Divoly is a crowdsourced library of real AI responses. Search once, find reusable answers instantly, and avoid asking the same question again.",
-  metadataBase: new URL("https://divoly.com"),
+  metadataBase: new URL("https://www.divoly.com"),
   icons: {
     icon: [
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Divoly | Search AI Answers, Not AI",
     description: "Crowdsourced AI answers you can search instantly. Reusable knowledge shared by the community.",
-    url: "https://divoly.com",
+    url: "https://www.divoly.com",
     siteName: "Divoly",
     locale: "en_US",
     type: "website",

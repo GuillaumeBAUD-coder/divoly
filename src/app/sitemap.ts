@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import { categorySeoPath, compareCategorySeoPath, getModelByName, modelCategorySeoPath } from "@/lib/seoRoutes";
 import { answerSlug, categorySlug, contributorSlug, modelSlug } from "@/lib/slugs";
 
-const SITE_URL = "https://divoly.com";
+const SITE_URL = "https://www.divoly.com";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
@@ -15,11 +15,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${SITE_URL}/requests`, lastModified: now, changeFrequency: "daily", priority: 0.8 },
     { url: `${SITE_URL}/contributors`, lastModified: now, changeFrequency: "daily", priority: 0.82 },
     { url: `${SITE_URL}/contribute`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
-    { url: `${SITE_URL}/llms.txt`, lastModified: now, changeFrequency: "weekly", priority: 0.52 },
-    { url: `${SITE_URL}/llms-full.txt`, lastModified: now, changeFrequency: "weekly", priority: 0.5 },
-    { url: `${SITE_URL}/ai-index.json`, lastModified: now, changeFrequency: "daily", priority: 0.52 },
-    { url: `${SITE_URL}/login`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
-    { url: `${SITE_URL}/register`, lastModified: now, changeFrequency: "yearly", priority: 0.3 },
+    { url: `${SITE_URL}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
     ...MODELS.map((model) => ({
       url: `${SITE_URL}/models/${modelSlug(model.name)}`,
       lastModified: now,
