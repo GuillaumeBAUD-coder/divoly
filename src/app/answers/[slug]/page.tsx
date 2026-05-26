@@ -112,7 +112,7 @@ export default async function SeoAnswerPage({ params }: PageProps) {
         author: {
           "@type": "Organization",
           name: answer.model,
-          url: `https://www.divoly.com/models/${answerSlug({ prompt: answer.model, model: answer.model, category: answer.category })}`,
+          url: `https://www.divoly.com/models/${modelSlug(answer.model)}`,
         },
       },
     },
