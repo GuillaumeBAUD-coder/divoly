@@ -1,5 +1,5 @@
 export function isSeedEmail(email?: string | null) {
-  return Boolean(email?.endsWith("@seed.echoai.dev"));
+  return Boolean(email?.endsWith("@seed.divoly.com"));
 }
 
 export function publicContributorLabel(user?: { name?: string | null; email?: string | null } | null) {
