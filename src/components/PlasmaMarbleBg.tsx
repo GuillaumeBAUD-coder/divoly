@@ -68,7 +68,12 @@ export function PlasmaMarbleBg() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const gl = canvas.getContext("webgl2", { antialias: false, alpha: false }) as WebGL2RenderingContext | null;
+    // Detect mobile / low-end device: skip WebGL entirely, rely on CSS fallback
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
+    const gl = canvas.getContext("webgl2", { antialias: false, alpha: false, powerPreference: "low-power" }) as WebGL2RenderingContext | null;
     if (!gl) return;
 
     // compile
@@ -102,9 +107,10 @@ export function PlasmaMarbleBg() {
     gl.enableVertexAttribArray(0);
     gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
 
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // On mobile: cap DPR to 1 to halve GPU pixel count
+    let dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
     const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 2);
       const w = Math.floor(canvas.clientWidth  * dpr);
       const h = Math.floor(canvas.clientHeight * dpr);
       if (canvas.width !== w || canvas.height !== h) {
@@ -122,6 +128,10 @@ export function PlasmaMarbleBg() {
     const click    = { x: 0, y: 0, t0: -1 };
     const start    = performance.now() / 1000;
 
+    // Target FPS: 60 on desktop, 30 on mobile
+    const targetInterval = isMobile ? 1000 / 30 : 1000 / 60;
+    let lastFrameTime = 0;
+
     const onMove = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
       mouseRaw[0] = (e.clientX - rect.left) * dpr;
@@ -129,7 +139,6 @@ export function PlasmaMarbleBg() {
     };
     const onClick = (e: MouseEvent) => {
       const rect = canvas.getBoundingClientRect();
-      // only register clicks inside the canvas area
       if (e.clientY > rect.bottom || e.clientY < rect.top) return;
       click.x  = (e.clientX - rect.left) * dpr;
       click.y  = canvas.height - (e.clientY - rect.top) * dpr;
@@ -138,8 +147,20 @@ export function PlasmaMarbleBg() {
     window.addEventListener("mousemove", onMove);
     window.addEventListener("click", onClick);
 
+    // Pause rendering when tab is hidden (Page Visibility API)
+    let visible = !document.hidden;
+    const onVisibility = () => { visible = !document.hidden; };
+    document.addEventListener("visibilitychange", onVisibility);
+
     let rafId = 0;
-    const frame = () => {
+    const frame = (timestamp: number) => {
+      rafId = requestAnimationFrame(frame);
+
+      // Skip frame if tab hidden or not enough time has passed (FPS cap)
+      if (!visible) return;
+      if (timestamp - lastFrameTime < targetInterval) return;
+      lastFrameTime = timestamp;
+
       const now = performance.now() / 1000;
       const t   = now - start;
 
@@ -162,8 +183,6 @@ export function PlasmaMarbleBg() {
       gl.uniform1f(u.speed,     0.95);
       gl.uniform1f(u.intensity, 0.45);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-      rafId = requestAnimationFrame(frame);
     };
     rafId = requestAnimationFrame(frame);
 
@@ -172,6 +191,7 @@ export function PlasmaMarbleBg() {
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("click", onClick);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, []);
 
