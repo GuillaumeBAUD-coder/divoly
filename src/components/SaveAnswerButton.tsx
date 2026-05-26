@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Bookmark } from "lucide-react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 type SaveAnswerButtonProps = {
   answerId: string;
@@ -16,6 +17,7 @@ export function SaveAnswerButton({ answerId, compact = false }: SaveAnswerButton
   const [saved, setSaved] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const { track } = useAnalytics();
 
   useEffect(() => {
     if (status === "loading") return;
@@ -51,7 +53,11 @@ export function SaveAnswerButton({ answerId, compact = false }: SaveAnswerButton
     startTransition(() => {
       void fetch(`/api/answers/${answerId}/save`, { method: "POST" })
         .then((res) => (res.ok ? res.json() : Promise.reject()))
-        .then((data) => setSaved(Boolean(data.saved)))
+        .then((data) => {
+          const isSaved = Boolean(data.saved);
+          setSaved(isSaved);
+          track(isSaved ? "answer_saved" : "answer_unsaved", { answer_id: answerId });
+        })
         .catch(() => {});
     });
   }

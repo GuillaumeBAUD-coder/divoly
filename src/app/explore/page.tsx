@@ -10,6 +10,7 @@ import { CATEGORIES, MODELS as MODEL_OPTIONS } from "@/lib/data";
 import { answerSlug } from "@/lib/slugs";
 import { RequestAnswerCard } from "@/components/RequestAnswerCard";
 import { DivolyWordmark } from "@/components/DivolyLogo";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 type Answer = {
   id: string; prompt: string; answer: string; model: string;
@@ -70,10 +71,36 @@ export default function ExplorePage() {
 
 function ExplorePageWithSearchParams() {
   const searchParams = useSearchParams();
+  const { track } = useAnalytics();
   const [activeCategory, setActiveCategory] = useState(() => searchParams.get("category") ?? "All");
   const [activeModel, setActiveModel] = useState(() => searchParams.get("model") ?? "All");
   const [sortBy, setSortBy] = useState<"upvotes" | "views" | "date">("upvotes");
   const [search, setSearch] = useState(() => searchParams.get("q") ?? "");
+
+  // Debounced search tracking — fire after user stops typing 800ms
+  useEffect(() => {
+    if (!search) return;
+    const timer = window.setTimeout(() => {
+      track("search_performed", { query: search, category: activeCategory, model: activeModel });
+    }, 800);
+    return () => window.clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search]);
+
+  function handleCategoryChange(cat: string) {
+    setActiveCategory(cat);
+    track("filter_category_changed", { category: cat, previous_category: activeCategory });
+  }
+
+  function handleModelChange(model: string) {
+    setActiveModel(model);
+    track("filter_model_changed", { model, previous_model: activeModel });
+  }
+
+  function handleSortChange(sort: "upvotes" | "views" | "date") {
+    setSortBy(sort);
+    track("filter_sort_changed", { sort });
+  }
 
   return (
     <ExplorePageContent
@@ -81,9 +108,9 @@ function ExplorePageWithSearchParams() {
       activeModel={activeModel}
       sortBy={sortBy}
       search={search}
-      setActiveCategory={setActiveCategory}
-      setActiveModel={setActiveModel}
-      setSortBy={setSortBy}
+      setActiveCategory={handleCategoryChange}
+      setActiveModel={handleModelChange}
+      setSortBy={handleSortChange}
       setSearch={setSearch}
     />
   );
@@ -111,6 +138,7 @@ function ExplorePageContent({
   setSearch = () => {},
 }: ExplorePageContentProps) {
   const { data: session } = useSession();
+  const { track } = useAnalytics();
   const [answers, setAnswers] = useState<Answer[]>([]);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [isPending, startTransition] = useTransition();
@@ -284,8 +312,20 @@ function ExplorePageContent({
           />
         ) : (
           <div className="space-y-4">
-            {answers.map((a) => (
-              <Link key={a.id} href={`/answers/${answerSlug(a)}`}>
+            {answers.map((a, idx) => (
+              <Link key={a.id} href={`/answers/${answerSlug(a)}`} onClick={() =>
+                track("answer_card_clicked", {
+                  answer_id: a.id,
+                  prompt: a.prompt,
+                  model: a.model,
+                  category: a.category,
+                  position: idx + 1,
+                  sort: sortBy,
+                  search_query: search || undefined,
+                  filter_category: activeCategory !== "All" ? activeCategory : undefined,
+                  filter_model: activeModel !== "All" ? activeModel : undefined,
+                })
+              }>
                 <div className="answer-row-card rounded-2xl p-5 cursor-pointer" style={{ "--answer-accent": a.modelColor ?? "#818cf8" } as CSSProperties}>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">

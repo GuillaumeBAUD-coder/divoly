@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, Share2 } from "lucide-react";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 type ShareButtonProps = {
   title: string;
@@ -14,9 +15,11 @@ type ShareButtonProps = {
 
 export function ShareButton({ title, text, url, label = "Share", compact = false, className = "" }: ShareButtonProps) {
   const [shared, setShared] = useState(false);
+  const { track } = useAnalytics();
 
   async function handleShare() {
     const absoluteUrl = url.startsWith("http") ? url : `${window.location.origin}${url}`;
+    const method = typeof navigator.share === "function" ? "native_share" : "clipboard";
 
     try {
       if (navigator.share) {
@@ -25,6 +28,7 @@ export function ShareButton({ title, text, url, label = "Share", compact = false
         await navigator.clipboard.writeText(absoluteUrl);
       }
       setShared(true);
+      track("answer_shared", { url: absoluteUrl, method });
       window.setTimeout(() => setShared(false), 1800);
     } catch {
       // Users can cancel native share sheets; no UI error is needed.

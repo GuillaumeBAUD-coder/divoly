@@ -7,16 +7,24 @@ import Link from "next/link";
 import { ArrowLeft, CheckCircle, Info } from "lucide-react";
 import { CATEGORIES, MODELS } from "@/lib/data";
 import { DivolyWordmark } from "@/components/DivolyLogo";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 
 export default function ContributePage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const { track } = useAnalytics();
   const [requestedPrompt, setRequestedPrompt] = useState("");
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({ prompt: "", answer: "", model: "", modelColor: "#3b82f6", category: "", tags: "" });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  // Track page visit on mount
+  useEffect(() => {
+    track("contribute_started", { via_request: false });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const request = new URLSearchParams(window.location.search).get("request") ?? "";
@@ -25,15 +33,18 @@ export default function ContributePage() {
     const timeout = window.setTimeout(() => {
       setRequestedPrompt(request);
       setForm((current) => (current.prompt ? current : { ...current, prompt: request }));
+      track("contribute_started", { via_request: true, request_prompt: request });
     }, 0);
 
     return () => window.clearTimeout(timeout);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
     setLoading(true);
+    track("contribute_step2_completed", { model: form.model, category: form.category });
     const res = await fetch("/api/answers", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -43,9 +54,12 @@ export default function ContributePage() {
     if (!res.ok) {
       if (res.status === 401) { router.push("/login"); return; }
       const data = await res.json();
-      setError(data.error ?? "Submission failed.");
+      const errMsg = data.error ?? "Submission failed.";
+      setError(errMsg);
+      track("contribute_error", { error: errMsg, model: form.model, category: form.category });
       return;
     }
+    track("contribute_submitted", { model: form.model, category: form.category, has_tags: form.tags.trim().length > 0 });
     setStep(3);
   }
 
@@ -136,7 +150,7 @@ export default function ContributePage() {
                   <Info size={14} className="text-indigo-400 shrink-0" />
                   <p className="text-xs text-white/40">Only paste answers you personally obtained. Don&apos;t include private or sensitive info.</p>
                 </div>
-                <button type="button" disabled={!form.prompt || !form.answer} onClick={() => setStep(2)}
+                <button type="button" disabled={!form.prompt || !form.answer} onClick={() => { setStep(2); track("contribute_step1_completed", { prompt_length: form.prompt.length, answer_length: form.answer.length }); }}
                   className="btn-primary w-full py-3.5 rounded-xl font-medium disabled:opacity-40 disabled:cursor-not-allowed">
                   Continue →
                 </button>
